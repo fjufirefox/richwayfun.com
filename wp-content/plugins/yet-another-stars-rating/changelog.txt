@@ -1,3 +1,11 @@
+= 2.4.0 =
+* NEW FEATURE: is now possible to customize the itemType Name: if empty, post title will be used instead.
+* TWEAKED: Custom text to show when an user has already voted now shows up even for logged in users
+* TWEAKED: Added new hooks: yasr_filter_schema_title and yasr_below_panel (for gutenberg)
+* TWEAKED: admin .js files are now bundled into a single one
+* TWEAKED: support for IE11 (will be dropped in 12 months)
+
+
 = 2.3.9 =
 * FIXED: yasr_visitor_votes readonly didn't show up if load results with ajax is enabled
 * FIXED: missing fragment error if gutenber used

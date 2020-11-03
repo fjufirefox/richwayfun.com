@@ -3,9 +3,9 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: rating, rate post, rate page, star rating, google rating, votes
 Requires at least: 4.9.0
 Contributors: Dudo
-Tested up to: 5.5.2
+Tested up to: 5.5.3
 Requires PHP: 5.3
-Stable tag: 2.5.2
+Stable tag: 2.5.3
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Boost the way people interact with your site with an easy WordPress stars rating system! With schema.org rich snippets YASR will improve your SEO
@@ -181,6 +181,9 @@ If doesn't, you should work on your seo reputation.
 
 The full changelog can be found in the plugin's directory. Recent entries:
 
+= 2.5.3 =
+* FIX: in Yet Another Stars Rating: Stats -> Overall Rating only posts with rating > 0 are shown
+
 = 2.5.2 =
 * NEW FEATURE: is now possible delete overall rating data in Yet Another Stars Rating -> Stats -> Overall Rating
 * FIXED: Schema title come with rating string if "Enable stars next to the title?" is enabled
@@ -249,13 +252,6 @@ be used to customize the shortcodes.
 = 2.4.1 =
 * FIXED: minor fix if more yasr_visitor_votes with different differents post_id are used in the same page
 
-
-= 2.4.0 =
-* NEW FEATURE: is now possible to customize the itemType Name: if empty, post title will be used instead-
-* TWEAKED: Custom text to show when an user has already voted now shows up even for logged in users
-* TWEAKED: Added new hooks: yasr_filter_schema_title and yasr_below_panel (for gutenberg)
-* TWEAKED: admin .js files are now bundled into a single one
-* TWEAKED: support for IE11 (will be dropped in 12 months)
 
 = Additional Info =
 See credits.txt file
