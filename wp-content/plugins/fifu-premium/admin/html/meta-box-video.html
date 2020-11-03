@@ -1,0 +1,46 @@
+<script><?php include 'js/video-meta-box.js' ?></script>
+
+<!-- show video and link if URL was already provided -->
+
+<input id="fifu_video_input_url" 
+       type="text" 
+       name="fifu_video_input_url" 
+       placeholder="<?php $fifu['common']['video']() ?>" 
+       value="<?php echo $url; ?>"
+       style="<?php echo $width, $margin ?>;font-size:13px;" />
+
+<div id="fifu_video" style="<?php echo $show_video; ?>" >
+    <iframe id="fifu_video_iframe" style="width:100%" src="<?php echo fifu_video_src($url); ?>" allowfullscreen frameborder="0"></iframe>
+</div>
+
+<center>
+    <a id="fifu_video_link" 
+       href="#" 
+       onClick="removeVideo();" 
+       style="<?php echo $show_link ?>" ><?php $fifu['video']['remove']() ?></a>
+</center>
+
+<input 
+    type="hidden" 
+    id="fifu_video_input_image_width" 
+    name="fifu_video_input_image_width" 
+    value="" >
+
+<input 
+    type="hidden" 
+    id="fifu_video_input_image_height" 
+    name="fifu_video_input_image_height" 
+    value="" >
+
+<input 
+    type="hidden" 
+    id="fifu_video_input_image_src" 
+    name="fifu_video_input_image_src" 
+    value="" >
+
+<!-- show preview button if URL was not provided yet -->
+
+<a id="fifu_video_button" 
+   class="button" 
+   onClick="previewVideo();" 
+   style="<?php echo $align, $margin, $show_button ?>" ><?php $fifu['common']['preview']() ?></a>

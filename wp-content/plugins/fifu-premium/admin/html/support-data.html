@@ -1,0 +1,143 @@
+<div class="wrap">
+
+    <div class="header-box">
+        <h1 style="color:white;padding-left:20px"><span class="dashicons dashicons-camera" style="font-size:30px"></span><span style="padding-left:20px">featured image from url premium</span></h1>
+    </div>
+
+    <div id="tabs-top" style="float:left">
+<textarea id="bar" style="width:1020px;height:800px;resize:none;background-color:white;" readonly>
+<?php echo fifu_version() ?>;
+WordPress:<?php bloginfo('version') ?>;
+Site:<?php echo get_home_url() ?>;
+License key:<?php echo $license_key ?>;
+Email:<?php echo $email ?>;
+Theme:<?php echo wp_get_theme() ?><?php echo fifu_woo_theme() ? ' (WooCommerce)' : '' ?>;
+PHP:<?php echo phpversion() ?>;
+WooCommerce:<?php echo class_exists('WooCommerce') ? WC()->version : '' ?>;
+Pages:<?php echo wp_count_posts('page')->publish ?>;
+Posts:<?php echo wp_count_posts('post')->publish ?>;
+Products:<?php echo class_exists('WooCommerce') ? wp_count_posts('product')->publish : null ?>;
+Images without dimensions:<?php echo fifu_db_missing_dimensions() ?>;
+URLs with metadata:<?php echo fifu_db_count_urls_with_metadata() ?>;
+URLs:<?php echo fifu_db_count_urls() ?>;
+php-curl:<?php echo fifu_has_curl() ? 'yes' : 'no' ?>;
+Plugins:<?php echo fifu_get_plugins_list() ?>;
+Active plugins:<?php echo fifu_get_active_plugins_list() ?>;
+fifu_auto_alt:<?php echo $enable_auto_alt ?>;
+fifu_auto_set:<?php echo $enable_auto_set ?>;
+fifu_auto_set_blocked:<?php echo get_option('fifu_auto_set_blocked') ?>;
+fifu_auto_set_width:<?php echo $max_auto_set_width ?>;
+fifu_auto_set_height:<?php echo $max_auto_set_height ?>;
+fifu_auto_set_blocklist:<?php echo $auto_set_blocklist ?>;
+fifu_autoplay:<?php echo $enable_autoplay ?>;
+fifu_auto_category:<?php echo $enable_auto_category ?>;
+fifu_column_height:<?php echo $column_height ?>;
+fifu_confirm_delete_all:<?php echo $enable_confirm_delete_all ?>;
+fifu_confirm_delete_all_time:<?php echo $enable_confirm_delete_all_time ?>;
+fifu_content:<?php echo $enable_content ?>;
+fifu_content_page:<?php echo $enable_content_page ?>;
+fifu_cron_metadata:<?php echo $enable_cron_metadata ?>;
+fifu_crop0:<?php echo $array_crop[0] ?>;
+fifu_crop1:<?php echo $array_crop[1] ?>;
+fifu_crop2:<?php echo $array_crop[2] ?>;
+fifu_crop3:<?php echo $array_crop[3] ?>;
+fifu_crop4:<?php echo $array_crop[4] ?>;
+fifu_crop_default:<?php echo $crop_default ?>;
+fifu_crop_delay:<?php echo $crop_delay ?>;
+fifu_crop_ratio:<?php echo $crop_ratio ?>;
+fifu_data_clean:<?php echo $enable_data_clean ?>;
+fifu_decode:<?php echo $enable_decode ?>;
+fifu_default_url:<?php echo $default_url ?>;
+fifu_dynamic_alt:<?php echo $enable_dynamic_alt ?>;
+fifu_enable_default_url:<?php echo $enable_default_url ?>;
+fifu_error_url:<?php echo $error_url ?>;
+fifu_fake:<?php echo $enable_fake ?>;
+fifu_fit:<?php echo $fit_option ?>;
+fifu_flickr:<?php echo $enable_flickr ?>;
+fifu_gallery_selector:<?php echo $gallery_selector ?>;
+fifu_get_first:<?php echo $enable_get_first ?>;
+fifu_giphy:<?php echo $enable_giphy ?>;
+fifu_grid_category:<?php echo $enable_grid_category ?>;
+fifu_hide_cpt:<?php echo $enable_hide_cpt ?>;
+fifu_hide_page:<?php echo $enable_hide_page ?>;
+fifu_hide_post:<?php echo $enable_hide_post ?>;
+fifu_hover:<?php echo $hover_option ?>;
+fifu_hover_selector:<?php echo $hover_selector ?>;
+fifu_isbn:<?php echo $enable_isbn ?>;
+fifu_isbn_blocked:<?php echo get_option('fifu_isbn_blocked') ?>;
+fifu_lazy:<?php echo $enable_lazy ?>;
+fifu_loop:<?php echo $enable_loop ?>;
+fifu_media_library:<?php echo $enable_media_library ?>;
+fifu_mouse_vimeo:<?php echo $enable_mouse_vimeo ?>;
+fifu_mouse_youtube:<?php echo $enable_mouse_youtube ?>;
+fifu_ovw_first:<?php echo $enable_ovw_first ?>;
+fifu_play_type:<?php echo $play_type_option ?>;
+fifu_pop_first:<?php echo $enable_pop_first ?>;
+fifu_query_strings:<?php echo $enable_query_strings ?>;
+fifu_reset:<?php echo $enable_reset ?>;
+fifu_rss:<?php echo $enable_rss ?>;
+fifu_rss_width:<?php echo $rss_width ?>;
+fifu_run_delete_all:<?php echo $enable_run_delete_all ?>;
+fifu_run_delete_all_time:<?php echo $enable_run_delete_all_time ?>;
+fifu_same_size:<?php echo $enable_same_size ?>;
+fifu_shortcode:<?php echo $enable_shortcode ?>;
+fifu_slider:<?php echo $enable_slider ?>;
+fifu_slider_auto:<?php echo $enable_slider_auto ?>;
+fifu_slider_ctrl:<?php echo $enable_slider_ctrl ?>;
+fifu_slider_gallery:<?php echo $enable_slider_gallery ?>;
+fifu_slider_thumb:<?php echo $enable_slider_thumb ?>;
+fifu_slider_pause:<?php echo $slider_pause ?>;
+fifu_slider_speed:<?php echo $slider_speed ?>;
+fifu_slider_stop:<?php echo $enable_slider_stop ?>;
+fifu_social:<?php echo $enable_social ?>;
+fifu_social_image_only:<?php echo $enable_social_image_only ?>;
+fifu_spinner_cron_metadata:<?php echo $interval_cron_metadata ?>;
+fifu_spinner_db:<?php echo $max_db ?>;
+fifu_spinner_image:<?php echo $max_image ?>;
+fifu_spinner_nth:<?php echo $nth_image ?>;
+fifu_spinner_slider:<?php echo $max_slider ?>;
+fifu_spinner_video:<?php echo $max_video ?>;
+fifu_unsplash_size:<?php echo $unsplash_size ?>;
+fifu_update_all:<?php echo $enable_update_all ?>;
+fifu_update_ignore:<?php echo $enable_update_ignore ?>;
+fifu_valid:<?php echo $enable_valid ?>;
+fifu_variation:<?php echo $enable_variation ?>;
+fifu_video:<?php echo $enable_video ?>;
+fifu_video_background:<?php echo $enable_video_background ?>;
+fifu_video_black:<?php echo $enable_video_black ?>;
+fifu_video_color:<?php echo $video_color ?>;
+fifu_video_gallery_icon:<?php echo $enable_video_gallery_icon ?>;
+fifu_video_min_width:<?php echo $min_video_width ?>;
+fifu_video_mute:<?php echo $enable_video_mute ?>;
+fifu_video_play_button:<?php echo $enable_video_play_button ?>;
+fifu_video_play_hide_grid:<?php echo $enable_video_play_hide_grid ?>;
+fifu_video_priority:<?php echo $enable_video_priority ?>;
+fifu_video_related:<?php echo $enable_video_related ?>;
+fifu_video_thumb:<?php echo $enable_video_thumb ?>;
+fifu_video_thumb_cpt:<?php echo $enable_video_thumb_cpt ?>;
+fifu_video_thumb_page:<?php echo $enable_video_thumb_page ?>;
+fifu_video_thumb_post:<?php echo $enable_video_thumb_post ?>;
+fifu_video_zindex:<?php echo $video_zindex ?>;
+fifu_wc_lbox:<?php echo $enable_wc_lbox ?>;
+fifu_wc_zoom:<?php echo $enable_wc_zoom ?>;
+Image:<?php echo fifu_get_last('fifu_image_url') ?>;
+Video:<?php echo fifu_get_last('fifu_video_url') ?>;
+Slider:<?php echo fifu_get_last('fifu_slider_image_url_0') ?>;
+Shortcode:<?php echo fifu_get_last('fifu_shortcode') ?>;
+REST routes:
+- <?php echo get_rest_url() ?>:PHP;
+</textarea>
+    </div>
+</div>
+
+<script>
+    jQuery(document).ready(function () {
+        var box = jQuery("#bar");
+        box.val(box.val() + '- ' + fifu_get_rest_url().substring(0, 100) + ':JS');
+    });
+
+    // remove notices from other plugins
+    setTimeout(function () {
+        jQuery('div.header-box > div').remove();
+    }, 250);
+</script>
