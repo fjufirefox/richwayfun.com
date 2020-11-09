@@ -8,20 +8,14 @@ input[type=text]{height:28px;}
 .notice p a {text-decoration: none;}
 .notice p a span.dashicons{height:16px; font-size:16px; line-height:18px; }
 
-form table.form-table td label{display: inline-block;}
-form table.form-table td label:only-child{width: 100%;}
 form table.form-table tr > td:only-child{padding:15px 10px 15px 0;}
-
-label input[type=checkbox] + span.description{display: inline-block; max-width: calc(100% - 30px); vertical-align:middle; margin-top: -.25rem;}
 
 div.wpjam-media-buttons{display: inline-block; float:none;}
 
 div.sub-field{margin-bottom: 10px;}
-label.sub-field-label{min-width:80px; display: inline-block;font-weight:600; vertical-align: top; height: 28px; line-height: 28px; margin: 2px 0;}
-div.sub-field-detail{display: inline-block; vertical-align: middle; min-height: 28px; line-height: 28px; width: 100%;}
-label.sub-field-label + div.sub-field-detail{width: calc(100% - 80px);}
-div.sub-field-detail label{display: inline-block;}
-div.sub-field-detail label:only-child{width: 100%;}
+label.sub-field-label{display: table-cell; min-width:80px; font-weight:600; vertical-align: top; height: 28px; line-height: 28px; margin: 2px 0;}
+div.sub-field-detail{display: inline-block; vertical-align: middle; min-height: 28px; line-height: 28px;}
+label.sub-field-label + div.sub-field-detail{display: table-cell;}
 
 div.mu-item{margin-bottom:4px; display: block;}
 div.mu-item span.dashicons-menu{margin-left: 6px; color: #ccc; width:28px; height: 28px; font-size:28px; cursor: pointer;}
@@ -105,7 +99,6 @@ table.wp-list-table tbody tr:first-child:nth-last-child(2) ~ tr .move{display: n
 .wp-picker-container input[type=text].wp-color-picker{margin:0 2px;}
 .wp-picker-container .wp-picker-clear{min-height:30px;}
 
-/*ThickBox*/
 #TB_window #TB_title {height: 40px;}
 #TB_window #TB_title #TB_ajaxWindowTitle{line-height: 40px; font-size:1.3em; padding-left:20px;}
 #TB_window #TB_title #TB_closeWindowButton{left: auto;right: -30px;color: #eee;}

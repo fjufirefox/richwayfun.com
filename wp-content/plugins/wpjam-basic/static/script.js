@@ -636,6 +636,13 @@ jQuery(function($){
 							if($('#TB_ajaxContent').length > 0){
 								$('#TB_ajaxContent').scrollTop(0);
 							}
+
+							if(('#wpjam_form').length > 0){
+								if(response.form){
+									$('.page-action-notice').remove();
+									$('#wpjam_form').html(response.form);
+								}
+							}
 							
 							if(response.errmsg){
 								$('.page-action-notice').wpjam_notice(response.errmsg, 'info');
