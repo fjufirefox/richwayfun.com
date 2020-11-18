@@ -83,7 +83,7 @@ function heateorSssMoreSharingPopup(elem, postUrl, postTitle, twitterTitle){
 	  SMS: {
 		title: "SMS",
 		locale: "en-US",
-		bookmarklet_url: "sms://?&body="+postTitle+" "+postUrl
+		bookmarklet_url: "sms:?&body="+postTitle+" "+postUrl
 	  },
 	  Trello: {
 		title: "Trello",

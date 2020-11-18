@@ -1,8 +1,9 @@
 input[type=text]{height:28px;}
 
 .wpjam-tooltip{position: relative; display: inline-block; color:#555 !important;}
-.wpjam-tooltip .wpjam-tooltip-text{visibility: hidden; width: 150px; margin-left: -75px; background-color: #ddd; padding: 5px; border-radius: 6px; text-align:center; position: absolute; z-index: 1; bottom: 125%; left: 50%; opacity: 0; transition: opacity 0.3s;}
-.wpjam-tooltip .wpjam-tooltip-text::after{content: " "; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #ddd transparent transparent transparent;}
+.wpjam-tooltip .wpjam-tooltip-text{visibility: hidden; opacity: 0; transition: opacity 0.3s; max-width: 300px; min-width: 200px; background-color: #ddd; padding: 5px; border-radius: 6px; text-align:center; position: absolute; z-index: 10000; bottom: 125%;}
+.wpjam-tooltip .wpjam-tooltip-text p{margin: 4px;}
+.wpjam-tooltip .wpjam-tooltip-text::after{content: " "; position: absolute; top: 100%; border-width: 5px; border-style: solid; border-color: #ddd transparent transparent transparent;}
 .wpjam-tooltip:hover .wpjam-tooltip-text{visibility: visible; opacity: 1;}
 
 .notice p a {text-decoration: none;}

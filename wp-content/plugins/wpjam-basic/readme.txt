@@ -50,8 +50,9 @@ WPJAM Basic 主要功能，就是去掉 WordPress 当中一些不常用的功能
 
 == Changelog ==
 
-= 4.6.4 =
+= 4.6.5 =
 * 解决 4.6 升级之后的 bug
+* 新增 wpjam_admin_init action
 * 支持评论者头像存到 commentmeta 中
 * 优化加密解密类 WPJAM_Crypt
 * 修正 WPJAM_Terms::get_terms 函数 parent 参数处理

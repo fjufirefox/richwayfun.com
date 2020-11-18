@@ -604,10 +604,11 @@ jQuery(function($){
 						alert(response.errmsg);
 					}
 				}else{
+					var response_type	= response.type;
+					
 					if(page_action_type == 'submit'){
 						$('input#page_submit').prop('disabled', false);
-						var response_type	= response.type;
-
+						
 						$('.spinner').removeClass('is-active');
 						$('.response').hide();
 

@@ -227,6 +227,10 @@ jQuery(function($){
 				cursor: 'move'
 			});
 
+			$('.wpjam-tooltip .wpjam-tooltip-text').css('margin-left', function(){
+				return 0 - Math.round($(this).width()/2);
+			});
+
 			// $('.sortable').disableSelection();
 
 			$('.tabs').wpjam_tabs();

@@ -3,8 +3,8 @@ Contributors: Heateor, jatin8heateor, farhan8heateor
 Donate link: https://www.heateor.com/donate/?action=Sassy+Social+Share
 Tags: social share, social sharing, social media share, share facebook, facebook social share, wordpress social share, share buttons, social share buttons, facebook like, twitter tweet, whatsapp share, line share
 Requires at least: 2.5.0
-Tested up to: 5.5.1
-Stable tag: 3.3.13
+Tested up to: 5.5.3
+Stable tag: 3.3.14
 License: GPLv2 or later
 
 Slickest, Simplest and Optimized Share buttons. Facebook, Twitter, Reddit, Pinterest, WhatsApp and over 100 more.
@@ -123,6 +123,9 @@ Yes, we can help you with it. Just drop an email at support[at]heateor[dot]com
 4. **Universal Sharing Popup**: Universal Sharing popup having all the supported sharing and bookmarking services
 
 == Changelog ==
+= 3.3.14 [18 November 2020] =
+[Bugfix] SMS share was placing // automatically in the Send To section
+
 = 3.3.13 [6 October 2020] =
 [Bugfix] Clear Bitly cache and Clear share count cache buttons in the Miscellaneous section were showing infinite loading
 
@@ -924,3 +927,6 @@ Yes, we can help you with it. Just drop an email at support[at]heateor[dot]com
 
 = 3.3.13 [6 October 2020] =
 [Bugfix] Clear Bitly cache and Clear share count cache buttons in the Miscellaneous section were showing infinite loading
+
+= 3.3.14 [18 November 2020] =
+[Bugfix] SMS share was placing // automatically in the Send To section
