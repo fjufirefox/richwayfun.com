@@ -5,7 +5,7 @@ Requires at least: 4.9.0
 Contributors: Dudo
 Tested up to: 5.5.3
 Requires PHP: 5.3
-Stable tag: 2.5.3
+Stable tag: 2.5.4
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Boost the way people interact with your site with an easy WordPress stars rating system! With schema.org rich snippets YASR will improve your SEO
@@ -181,6 +181,10 @@ If doesn't, you should work on your seo reputation.
 
 The full changelog can be found in the plugin's directory. Recent entries:
 
+= 2.5.4 =
+* FIX: yasr_visitor_multiset data didn't save correctly if more than one were used in the same page.
+
+
 = 2.5.3 =
 * FIX: in Yet Another Stars Rating: Stats -> Overall Rating only posts with rating > 0 are shown
 
@@ -239,18 +243,6 @@ be used to customize the shortcodes.
 = 2.4.4 =
 * TWEAKED: added yasr_auto_insert_exclude_cpt hook
 * TWEAKED: code cleanup
-
-
-= 2.4.3 =
-* NEW FEATURE: is now possible to show ratings next to the title
-* FIXED: guten blocks returns error if post_id parameter was set
-* TWEAKED: added some hooks
-
-= 2.4.2 =
-* FIXED: error in gutenberg editor that appear in some circumstances
-
-= 2.4.1 =
-* FIXED: minor fix if more yasr_visitor_votes with different differents post_id are used in the same page
 
 
 = Additional Info =

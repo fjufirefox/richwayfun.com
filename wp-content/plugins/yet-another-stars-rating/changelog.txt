@@ -1,3 +1,18 @@
+= 2.4.3 =
+* NEW FEATURE: is now possible to show ratings next to the title
+* FIXED: guten blocks returns error if post_id parameter was set
+* TWEAKED: added some hooks
+
+= 2.4.2 =
+* FIXED: error in gutenberg editor that appear in some circumstances
+
+= 2.4.1 =
+* FIXED: minor fix if more yasr_visitor_votes with different differents post_id are used in the same page
+[//]: # fs_premium_only_begin
+* NEW FEATURE: is now possible to add fake ratings in yasr_visitor_votes shortcode
+* PRO ONLY: FIXED: is now possible to translate or create the strings with a software like loco translate
+[//]: # fs_premium_only_end
+
 = 2.4.0 =
 * NEW FEATURE: is now possible to customize the itemType Name: if empty, post title will be used instead.
 * TWEAKED: Custom text to show when an user has already voted now shows up even for logged in users
