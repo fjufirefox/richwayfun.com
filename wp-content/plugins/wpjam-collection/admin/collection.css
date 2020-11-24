@@ -1,0 +1,9 @@
+.edit-attachment, 
+.media-types.media-types-required-info{display: none !important;} 
+.media-modal-content .media-frame select.attachment-filters {width: auto; max-width: 100%;}
+tr.compat-field-collection ul.collection-checklist{height: auto !important; font-size: 13px; padding: 8px !important;}
+tr.compat-field-collection ul.collection-checklist label{line-height: 1.5;}
+tr.compat-field-collection ul.collection-checklist input{margin:-4px 4px 0 0 !important;}
+tr.compat-field-collection ul.collection-checklist >li:after{content:""; display: block; clear: both; margin-bottom: 12px;}
+tr.compat-field-collection ul.collection-checklist ul.children{margin-left: 8px;}
+tr.compat-field-collection ul.collection-checklist ul.children li{float: left; margin: 8px 8px 0 0;}
