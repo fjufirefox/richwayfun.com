@@ -50,8 +50,15 @@ WPJAM Basic 主要功能，就是去掉 WordPress 当中一些不常用的功能
 
 == Changelog ==
 
-= 4.6.5 =
-* 解决 4.6 升级之后的 bug
+= 5.0.2 =
+* 解决 5.0 激活的一个 class 不存在的 bug
+* 解决 5.0 升级之后造成相关文章不显示的 bug
+
+= 5.0 =
+* 缩略图设置支持应用到原生的缩略图中。
+* 优化图片的 $max_width 处理。
+* 新增 wpjam_parse_query 函数。
+* 新增 wpjam_render_query 函数。
 * 新增 wpjam_admin_init action
 * 支持评论者头像存到 commentmeta 中
 * 优化加密解密类 WPJAM_Crypt
@@ -80,7 +87,6 @@ WPJAM Basic 主要功能，就是去掉 WordPress 当中一些不常用的功能
 * 修复 Safari 浏览器下的批量操作不生效问题
 * 优化后台图表功能
 * 优化用户站内消息
-
 
 = 4.4 =
 * 兼容 WordPress 5.5
@@ -168,7 +174,6 @@ WPJAM Basic 主要功能，就是去掉 WordPress 当中一些不常用的功能
 = 3.7 =
 * 插件 readme 添加 PHP 7.2 最低要求
 * 新增 class-wpjam-message.php
-* 修正 CDN http/https 切换的一个 bug
 * WPJAM_LIST_TABLE 增强 overall 操作
 * 「用户角色」扩展添加重置功能
 * 优化头像接口
@@ -188,7 +193,6 @@ WPJAM Basic 主要功能，就是去掉 WordPress 当中一些不常用的功能
 * 全新的讨论组，非常顺滑
 * 新增 class-wpjam-comment.php
 * 「移动主题」扩展支持在后台启用移动主题
-* 更多 bug 修正，反正你也看不懂，就不细说了
 
 = 3.5 =
 * 5.1 版本兼容处理

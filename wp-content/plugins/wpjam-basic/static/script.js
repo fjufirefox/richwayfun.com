@@ -56,7 +56,7 @@ jQuery(function($){
 			var list_action_type	= args.list_action_type;
 			var list_action			= args.list_action;
 			var item_prefix			= wpjam_page_setting.item_prefix;
-			
+
 			if($('#TB_ajaxContent').length > 0){
 				$('input#list-table-submit').prop('disabled', true);
 				$('.spinner').addClass('is-active');
@@ -68,7 +68,7 @@ jQuery(function($){
 				if(args.bulk){
 					$.each(args.ids, function(index, id){
 						var tr_id	= $.wpjam_list_table_tr_id(id);
-						$(item_prefix+tr_id+' .check-column input').after('<span class="spinner is-active"></span>').hide();	
+						$(item_prefix+tr_id+' .check-column input').after('<span class="spinner is-active"></span>').hide();
 					});
 				}else{
 					if(args.id){
@@ -104,11 +104,11 @@ jQuery(function($){
 						}
 					}
 				}
-				
+
 				if($('.list-table-notice').length < 1){
-					$('hr.wp-header-end').after('<div class="list-table-notice notice is-dismissible hidden"></div>');	
+					$('hr.wp-header-end').after('<div class="list-table-notice notice is-dismissible hidden"></div>');
 				}
-				
+
 				if(response.errcode != 0){
 					if(list_action_type == 'submit'){
 						$('#TB_ajaxContent').scrollTop(0);
@@ -189,7 +189,7 @@ jQuery(function($){
 									$('.wp-list-table > tbody tr').first().before(response.data);
 									$('.wp-list-table > tbody tr').first().hide().css('background-color','#ffffee').fadeIn(400);
 								}
-								
+
 								$('.no-items').remove();
 							}
 						}else if(response_type == 'up' || response_type == 'down'){
@@ -197,7 +197,7 @@ jQuery(function($){
 
 							if(response_type == 'up'){
 								tr_next	= $.wpjam_list_table_tr_id(args.next);
-								$(item_prefix+tr_next).insertAfter(item_prefix+tr_id);	
+								$(item_prefix+tr_next).insertAfter(item_prefix+tr_id);
 							}else{
 								tr_prev	= $.wpjam_list_table_tr_id(args.prev);
 								$(item_prefix+tr_id).insertAfter(item_prefix+tr_prev);
@@ -255,7 +255,7 @@ jQuery(function($){
 							$('#TB_ajaxWindowTitle').html(response.page_title);
 							$('#TB_ajaxContent').html(response.form);
 							$('#TB_ajaxContent').scrollTop(0);
-							
+
 							if(response_type == 'list'){
 								$('div.list-table').html(response.data);
 							}else if(response_type == 'form'){
@@ -270,7 +270,7 @@ jQuery(function($){
 										$('.wp-list-table > tbody tr').first().before(response.data);
 										$('.wp-list-table > tbody tr').first().hide().css('background-color','#ffffee').fadeIn(400);
 									}
-									
+
 									$('.no-items').remove();
 								}
 							}else{
@@ -282,7 +282,7 @@ jQuery(function($){
 									});
 								}else{
 									$.wpjam_list_table_update_item(args.id, response.data);
-								}		
+								}
 							}
 
 							if(response.errmsg){
@@ -306,14 +306,14 @@ jQuery(function($){
 							if(args.data){
 								params.data	= encodeURIComponent(args.data);
 							}
-							
+
 							window.history.replaceState(null, null, $.wpjam_admin_url(params));
 						}
 					}
 
 					response.list_action		= list_action;
 					response.list_action_type	= list_action_type;
-					
+
 					$('body').trigger('list_table_action_success', response);
 
 					if($('#TB_ajaxContent').length > 0){
@@ -338,7 +338,7 @@ jQuery(function($){
 				}
 
 				bg_color	= bg_color || '#ffffee';
-				
+
 				$(item_prefix+tr_id).hide().css('background-color', bg_color).fadeIn(400);
 			}
 		},
@@ -358,7 +358,7 @@ jQuery(function($){
 
 		wpjam_list_table_tr_id: function(id){
 			if(typeof(id) == "string"){
-				return id.replace(/\./g, '-');	
+				return id.replace(/\./g, '-');
 			}else{
 				return id;
 			}
@@ -422,7 +422,7 @@ jQuery(function($){
 
 			$.each(params, function(index, param){
 				if($.inArray(param.name, ['page', 'tab', 's', 'paged', '_wp_http_referer', '_wpnonce', 'action', 'action2', 'wpjam_query_data']) == -1){
-					wpjam_page_setting.params[param.name]	= param.value;	
+					wpjam_page_setting.params[param.name]	= param.value;
 				}
 			});
 
@@ -435,7 +435,7 @@ jQuery(function($){
 			}else{
 				wpjam_page_setting.params	= {};
 			}
-			
+
 			wpjam_page_setting.params.s	= $('#wpjam-search-input').val();
 
 			return $.wpjam_list_table_query_items(true);
@@ -481,7 +481,7 @@ jQuery(function($){
 					};
 					return ui;
 				},
-				
+
 				update:		function(e, ui) {
 					$(this).sortable('disable');
 					// $(this).sortable('serialize');
@@ -505,7 +505,7 @@ jQuery(function($){
 					}else{
 						data	= data + '&prev=0';	// 最前
 					}
-					
+
 					$.wpjam_list_table_action({
 						list_action_type:	'direct',
 						list_action:		'move',
@@ -569,7 +569,7 @@ jQuery(function($){
 				return false;
 			}
 		},
-		
+
 		wpjam_page_action: function (args){
 			args.action			= 'wpjam-page-action';
 			args.screen_id		= wpjam_page_setting.screen_id;
@@ -605,10 +605,10 @@ jQuery(function($){
 					}
 				}else{
 					var response_type	= response.type;
-					
+
 					if(page_action_type == 'submit'){
 						$('input#page_submit').prop('disabled', false);
-						
+
 						$('.spinner').removeClass('is-active');
 						$('.response').hide();
 
@@ -644,7 +644,7 @@ jQuery(function($){
 									$('#wpjam_form').html(response.form);
 								}
 							}
-							
+
 							if(response.errmsg){
 								$('.page-action-notice').wpjam_notice(response.errmsg, 'info');
 							}else{
@@ -665,7 +665,7 @@ jQuery(function($){
 						}
 					}else if(page_action_type == 'form'){
 						$('#TB_load').remove();
-						
+
 						if(response.form){
 							$('#tb_modal').html(response.form);
 						}else if(response.data){
@@ -696,7 +696,7 @@ jQuery(function($){
 					if($('#TB_ajaxContent').length > 0){
 						tb_position();
 					}
-				
+
 					response.page_action		= page_action;
 					response.page_action_type	= page_action_type;
 
@@ -722,12 +722,12 @@ jQuery(function($){
 				if($('.option-notice').length < 1){
 					$('hr.wp-header-end').after('<div class="option-notice notice is-dismissible hidden"></div>');
 				}
-				
+
 				if(response.errcode != 0){
 					$('.spinner').removeClass('is-active');
 					$('.option-notice').wpjam_notice('保存失败：'+response.errmsg, 'error');
 				}else{
-					let notice_msg	= response.errmsg ? response.errmsg : '设置已保存。';	
+					let notice_msg	= response.errmsg ? response.errmsg : '设置已保存。';
 
 					$('.spinner').removeClass('is-active');
 					$('.option-notice').wpjam_notice(notice_msg, 'success');
@@ -895,7 +895,7 @@ jQuery(function($){
 
 		var list_action = $(this).data('action');
 
-		var args	= {	
+		var args	= {
 			list_action_type:	'submit',
 			bulk: 				$(this).data('bulk'),
 			data: 				$(this).serialize(),
@@ -918,7 +918,7 @@ jQuery(function($){
 
 		$.wpjam_list_table_action(args);
 	});
-	
+
 	$('body').on('click', '.list-table-action', function(){
 		if($(this).data('confirm')){
 			if(confirm('确定要'+$(this).attr('title')+'吗?') == false){
@@ -932,7 +932,7 @@ jQuery(function($){
 
 		var id		= $(this).data('id');
 		var data	= $(this).data('data');
-		
+
 		var	next	= '';
 		var	prev	= '';
 
@@ -940,7 +940,7 @@ jQuery(function($){
 
 		if(list_action == 'up'){
 			next	= $(item_prefix+tr_id).prev().find('.ui-sortable-handle');
-			
+
 			if(next.length > 0){
 				next	= next.data('id');
 				data	= data ? data + '&' : '';
@@ -951,7 +951,7 @@ jQuery(function($){
 			}
 		}else if(list_action == 'down'){
 			prev	= $(item_prefix+tr_id).next().find('.ui-sortable-handle');
-			
+
 			if(prev.length > 0){
 				prev	= prev.data('id');
 				data	= data ? data + '&' : '';
@@ -973,7 +973,7 @@ jQuery(function($){
 			tb_height:			$(this).data('tb_height'),
 			_ajax_nonce: 		$(this).data('nonce')
 		});
-		
+
 		$(this).blur();
 	});
 
@@ -1105,7 +1105,7 @@ jQuery(function($){
 	});
 
 	$('body').on('submit', '#wpjam_option', function(e){
-		e.preventDefault();	
+		e.preventDefault();
 
 		$.wpjam_option_action({
 			data:	$(this).serialize()
@@ -1133,7 +1133,7 @@ jQuery(function($){
 	});
 });
 
-window.frame_imgs = [];		
+window.frame_imgs = [];
 function show_wx_img(src, iframe_width, iframe_height, url) {
 	iframe_width	= iframe_width || 0;
 	iframe_height	= iframe_height || 0;
@@ -1144,7 +1144,7 @@ function show_wx_img(src, iframe_width, iframe_height, url) {
 	}else{
 		var img_html	= '<img id="img" style="max-width:100%;" src=\'' + src + '?' + Math.random() + '\' />';
 	}
-	
+
 	if(url){
 		img_html	= '<a href="'+url+'" target="_blank">'+img_html+'</a>';
 	}

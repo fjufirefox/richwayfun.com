@@ -2,7 +2,7 @@ jQuery(function($){
 	$.fn.extend({
 		wpjam_add_attachment: function(attachment){
 			let render	= wp.template('wpjam-img');
-			
+
 			$(this).prev('input').val($(this).data('item_type') == 'url' ? attachment.url : attachment.id);
 			$(this).html(render({
 				img_url		: attachment.url,
@@ -20,7 +20,7 @@ jQuery(function($){
 
 			let render	= wp.template('wpjam-mu-img');
 			let i		= $(this).data('i');
-				
+
 			$(this).before(render({
 				img_url		: attachment.url, 
 				img_value	: ($(this).data('item_type') == 'url') ? attachment.url : attachment.id,
@@ -41,7 +41,7 @@ jQuery(function($){
 				if($(this).is(':checkbox')){
 					if($(this).hasClass('mu-checkbox')){
 						show_if_val	= [];
-						
+
 						$('.checkbox-'+show_if_key+':checked').each(function(){
 							show_if_val.push($(this).val());
 						});
@@ -66,7 +66,7 @@ jQuery(function($){
 					}
 				});
 			});
-			
+
 			tb_position();
 		},
 
@@ -89,9 +89,9 @@ jQuery(function($){
 
 						if(request.term){
 							if(args.data_type == 'post_type'){
-								args.query_args.s		= request.term;	
+								args.query_args.s		= request.term;
 							}else{
-								args.query_args.search	= request.term;	
+								args.query_args.search	= request.term;
 							}
 						}
 
@@ -103,7 +103,7 @@ jQuery(function($){
 							mapping_keys.label	= args.query_args.label_key;
 							mapping_keys.id		= args.query_args.id_key;
 						}
-					
+
 						$.post(ajaxurl, args, function(data, status){
 							response($.map(data.datas, function(item){
 								return {label:item[mapping_keys.label], value:item[mapping_keys.id]};
@@ -137,7 +137,7 @@ jQuery(function($){
 						if(ui.tab.find('a').length){
 							ui.tab.find('a').addClass('nav-tab-active');
 							if(window.location.hash){
-								$('input[name="_wp_http_referer"]').val($('input[name="_wp_http_referer"]').val()+window.location.hash);	
+								$('input[name="_wp_http_referer"]').val($('input[name="_wp_http_referer"]').val()+window.location.hash);
 							}
 						}
 					}
@@ -238,7 +238,7 @@ jQuery(function($){
 			$('.wpjam-autocomplete').wpjam_autocomplete();
 
 			$('input.color').wpColorPicker();
-			
+
 			$('input[type="range"]').change();
 
 			// $('.type-date').datepicker();
@@ -283,7 +283,7 @@ jQuery(function($){
 		return;
 	}
 
-	$('body').on('click', '.wpjam-file', function(e) {	
+	$('body').on('click', '.wpjam-file', function(e) {
 		let prev_input	= $(this).prev('input');
 		let item_type	= $(this).data('item_type');
 		let title		= (item_type == 'image')?'选择图片':'选择文件';
@@ -303,7 +303,7 @@ jQuery(function($){
 	});
 
 	//上传单个图片
-	$('body').on('click', '.wpjam-img', function(e) {	
+	$('body').on('click', '.wpjam-img', function(e) {
 		let _this	= $(this);
 
 		if(wp.media.view.settings.post.id){
@@ -318,7 +318,7 @@ jQuery(function($){
 				$('.media-frame').addClass('hide-menu');
 			}).on('insert', function() {
 				_this.wpjam_add_attachment(custom_uploader.state().get('selection').first().toJSON());
-				
+
 				$('.media-modal-close').trigger('click');
 			}).open();
 		}else{
@@ -329,7 +329,7 @@ jQuery(function($){
 				multiple:	false 
 			}).on('select', function() {
 				_this.wpjam_add_attachment(custom_uploader.state().get('selection').first().toJSON());
-				
+
 				$('.media-modal-close').trigger('click');
 			}).open();
 		}
@@ -347,7 +347,7 @@ jQuery(function($){
 		let render		= wp.template('wpjam-mu-file');
 		let item_type	= $(this).data('item_type');
 		let title		= (item_type == 'image')?'选择图片':'选择文件';
-		
+
 		custom_uploader = wp.media({
 			title:		title,
 			library:	{ type: item_type },
@@ -363,7 +363,7 @@ jQuery(function($){
 				attachment	= attachment.toJSON();
 
 				i++;
-				
+
 				_this.parent().before(render({
 					img_url	: attachment.url,
 					name	: name,
