@@ -3,9 +3,9 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: rating, rate post, rate page, star rating, google rating, votes
 Requires at least: 4.9.0
 Contributors: Dudo
-Tested up to: 5.5.3
+Tested up to: 5.6
 Requires PHP: 5.3
-Stable tag: 2.5.5
+Stable tag: 2.5.6
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Boost the way people interact with your site with an easy WordPress stars rating system! With schema.org rich snippets YASR will improve your SEO
@@ -180,6 +180,12 @@ If doesn't, you should work on your seo reputation.
 == Changelog ==
 
 The full changelog can be found in the plugin's directory. Recent entries:
+
+= 2.5.6 =
+* FIX: register_rest_route called incorrectly in Gutenberg
+* FIX: random js error into dashboard (thanks to @lwangaman)
+* TWEAK: On stars hover, cursor is now displayed an an hand
+* FIX: minor changes to support older versions
 
 = 2.5.5 =
 * FIX: rich snippet's attribute name returns the post_id instead of the title in some circumstances

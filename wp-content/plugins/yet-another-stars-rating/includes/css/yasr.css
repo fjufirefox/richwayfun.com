@@ -5,6 +5,7 @@
     background-position: 0 0;
     background-repeat: repeat-x;
     vertical-align: bottom;
+    cursor: pointer;
 }
 
 .yasr-star-rating[data-title]:hover:after {

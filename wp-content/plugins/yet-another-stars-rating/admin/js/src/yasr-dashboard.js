@@ -23,7 +23,7 @@ jQuery(document).ready(function () {
     jQuery(document).ajaxComplete(function (event, xhr, settings) {
         var isYasrAjaxCall = true;
 
-        if(settings.data !== 'undefined') {
+        if(typeof settings.data !== 'undefined') {
             //check if the ajax call is done by yasr with action yasr_change_log_page
             isYasrAjaxCall = settings.data.search("action=yasr_change_log_page");
         }
