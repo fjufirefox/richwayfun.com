@@ -496,10 +496,17 @@
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-repeater .fusionredux-repeater-accordion-repeater .ui-accordion-content {
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
+  border: 1px solid #dfdfdf !important;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-repeater .fusionredux-repeater-accordion-repeater h3.ui-accordion-header {
-  background-color: #f2f2f2 !important;
+  background-color: #f2f3f5 !important;
   background-image: none !important;
+  border: 1px solid #dfdfdf !important;
+  color: #93999f !important;
+  font-size: 14px;
+  text-shadow: none;
+  font-weight: 600;
+  text-align: center;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-repeater .fusionredux-repeater-accordion-repeater h4 {
   margin: 5px 0;
@@ -892,6 +899,7 @@
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .ui-button {
   padding: 0 10px;
   height: auto;
+  line-height: 30px;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .ui-button .ui-button-text {
   padding: 0;
@@ -1062,6 +1070,7 @@
   border: none !important;
   border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
   background-color: #f2f3f5 !important;
+  background-image: none !important;
   color: #93999f !important;
   font-size: 14px;
   text-shadow: none;
@@ -1804,7 +1813,16 @@
   background-color: #E7F4FB;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-group-tab .ace-wrapper > .ace_editor {
-  border: 1px solid #dedede;
+  border: 1px solid #dfdfdf;
+}
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-group-tab .ace-wrapper > .ace_editor .ace-tm .ace_gutter {
+  background-color: #f2f3f5;
+}
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-group-tab .ace-wrapper > .ace_editor .ace-tm .ace_marker-layer .ace_active-line {
+  background: rgba(0, 0, 0, 0.04);
+}
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-group-tab .ace-wrapper > .ace_editor .ace-tm .ace_print-margin {
+  border-color: #dfdfdf;
 }
 .fusion-redux-search .fusionredux-sidebar {
   transition: all 250ms ease-in-out;

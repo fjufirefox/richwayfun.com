@@ -7,6 +7,17 @@ This is why we highly recommend to stay up to date with each new theme version a
 
 
 -----------------------------------------------------------------------------------------
+Version 7.1.2 - December 07th, 2020
+-----------------------------------------------------------------------------------------
+
+
+This is a maintenance update making sure Avada works fine with the upcoming release of WordPress 5.6.
+
+- NEW: Compatibility with WordPress 5.6
+- UPDATED: JS code to work with jQuery 3.5+
+
+
+-----------------------------------------------------------------------------------------
 Version 7.1.1 - October 15th, 2020
 -----------------------------------------------------------------------------------------
 

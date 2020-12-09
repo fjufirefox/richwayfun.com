@@ -50,6 +50,14 @@
   padding: 8px;
   font-size: 18px;
 }
+.metabox-prefs .avada-logo,
+.postbox .hndle .avada-logo {
+  margin: 0 0.25em;
+}
+.metabox-prefs .avada-option-title,
+.postbox .hndle .avada-option-title {
+  margin: 0 0.25em;
+}
 .postbox .hndle .avada-logo-wrapper {
   display: inline-flex;
   align-items: center;
@@ -59,7 +67,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin: 0 0.25em;
   width: 25px;
   height: 25px;
   background-color: #65bc7b;
@@ -68,9 +75,6 @@
 .postbox .hndle .avada-logo:before {
   font-size: inherit;
   color: #fff;
-}
-.postbox .hndle .avada-option-title {
-  margin: 0 0.25em;
 }
 #poststuff .pyre_metabox h2 {
   margin-top: 30px;
@@ -1777,6 +1781,7 @@ ul#adminmenu > li.toplevel_page_avada.current > a.current:after {
   cursor: pointer !important;
   outline: none !important;
   border-radius: 0 !important;
+  font-size: 0;
 }
 .avada-po-dialog .ui-dialog-titlebar-close:before {
   font-size: 18px !important;

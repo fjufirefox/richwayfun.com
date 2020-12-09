@@ -3,8 +3,8 @@ Contributors: gabelivan
 Tags: minify css, minify javascript, defer css javascript, page speed, dequeue, performance
 Donate link: https://www.gabelivan.com/items/wp-asset-cleanup-pro/?utm_source=wp_org_lite&utm_medium=donate
 Requires at least: 4.5
-Tested up to: 5.5.1
-Stable tag: 1.3.7.1
+Tested up to: 5.5.3
+Stable tag: 1.3.7.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 
@@ -188,6 +188,18 @@ With the recently released "Test Mode" feature, you can safely unload assets on 
 4. Homepage CSS & JS Management (List sorted by location)
 
 == Changelog ==
+= 1.3.7.2 =
+* New Setting: Restrict access for administrators on the "CSS & JS Manager" area, thus decluttering the posts/pages whenever they edit them; Very useful if there are admins (e.g. store managers that don't have to mix with Asset CleanUp's assets list for various reasons) that should not view the meta boxes from edit post/page, the CSS/JS list from the front-end view (if enabled), etc. ("Settings" -> "Plugin Usage Preferences" -> "Allow managing assets to:")
+* Improvement: Extra checks are made to detect if the page is an AMP one and if it is, no changes would be made to the HTML source (e.g. no SCRIPT tags in the HEAD section of the page)
+* Clear caching once a day via WP Cron in the case over 24 hours have passed since the last clearance (e.g. in case the admin hasn't cleared the caching in a long time or hasn't touched the Dashboard for days)
+* Deactivate the appending of the inline CSS/JS code (extra, before or after) to the combined CSS/JS files if all the files' size is over 700 MB as this often suggest the inline code is not unique (e.g. having WordPress nonces that often change)
+* Oxygen Builder Fix: Make sure the file /wp-content/uploads/css/universal.css is taken into consideration for minification as it's among the files that aren't minified by default
+* Fix: Basic preloading was not taking place anymore
+* Fix: "PHP Warning: in_array() expects parameter 2 to be array, boolean given" is generating if the current media query load list is empty
+* Fix: Make sure /wp-content/cache/asset-cleanup/(css|js) directories are re-created if necessary, in case they were removed (e.g. for being empty or by mistake)
+* Fix: Prevent the meta boxes from showing up in the edit post/page area (thus, decluttering the edit area) if the user's role is not "administrator" (e.g. it was showing it to editors without any CSS/JS to manage which was often confusing)
+* Changed the "Plugins Manager" area to have the same feeling as the "CSS & JS Manager"; Removed the "Always load it (default)" option as it's redundant since all the plugins are loaded by default unless there are unload rules set there; The load exceptions are now showing in green font to stand out in case they overwrite any unload rule.
+
 = 1.3.7.1 =
 * New option in "Settings" -> "Combine loaded JS (JavaScript) into fewer files" -> "Wrap each JavaScript file included in the combined group in its own try {} catch(e) {} statement in case it has an error and it would affect the execution of the other included files"
 * Changed the way hardcoded assets are printed to ensure they are retrieved with higher accuracy (the retrieval is made via AJAX calls) so the same list will also show in the Pro version

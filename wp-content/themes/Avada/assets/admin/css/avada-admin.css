@@ -1084,9 +1084,9 @@
   transform: translateX(30%) rotate(45deg);
   transform-origin: top left;
   background-color: #65bc7b;
-  color: #ffffff;
+  color: #fff;
   text-transform: uppercase;
-  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
 }
 .fusion-body .avada-db-card .avada-db-card-grid .avada-db-card-notice .avada-db-card-notice-heading {
   display: flex;
@@ -1139,7 +1139,7 @@
   left: 50%;
   margin: 0 auto;
   background: #2a3035;
-  color: #ffffff;
+  color: #fff;
   padding: 0.8em;
   font-size: 0.65em;
   border-radius: 0.35em;
@@ -2604,6 +2604,7 @@ span.avada-loader {
   cursor: pointer !important;
   outline: none !important;
   border-radius: 0 !important;
+  font-size: 0;
 }
 .avada-demo-dialog .ui-dialog-titlebar-close:before {
   font-size: 18px !important;

@@ -3,8 +3,8 @@ Contributors: Heateor, farhan8heateor, jatin8heateor, the_champ, Hungarian Trans
 Donate link: https://www.heateor.com/donate?action=Super+Socializer
 Tags: social login, social share, line login, social commenting, social comments, social plugin, profile data, social analytics, online identity, social profile storage, single sign-on, social media follow, facebook login, Windows Live Login, Microsoft Login, Wordpress login, Yahoo login, Spotify login, Dribbble login, Kakao login, Github login
 Requires at least: 2.5.0
-Tested up to: 5.5.1
-Stable tag: 7.13.5
+Tested up to: 5.5.3
+Stable tag: 7.13.6
 License: GPLv2 or later
 
 The unique Social Plugin to let you integrate Social Login, Social Share, Social Comments and Social Media follow at your website
@@ -212,6 +212,9 @@ Yes, we can help you with it. Just drop an email at support[ at ]heateor[ dot ]c
 8. **Social Commenting**: Disqus Commenting selected
 
 == Changelog ==
+= 7.13.6 [7 December 2020] =
+[Bugfix] Instagram login was redirecting to "404 - Page not found"
+
 = 7.13.5 [29 October 2020] =
 [New] Added filter heateor_ss_steam_login_filter to customize the Steam login profile data
 
@@ -2149,3 +2152,6 @@ Yes, we can help you with it. Just drop an email at support[ at ]heateor[ dot ]c
 
 = 7.13.5 [29 October 2020] =
 [New] Added filter heateor_ss_steam_login_filter to customize the Steam login profile data
+
+= 7.13.6 [7 December 2020] =
+[Bugfix] Instagram login was redirecting to "404 - Page not found"
