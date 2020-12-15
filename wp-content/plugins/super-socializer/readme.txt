@@ -1,10 +1,10 @@
 ﻿=== WordPress Social Share, Social Login and Social Comments Plugin - Super Socializer ===
 Contributors: Heateor, farhan8heateor, jatin8heateor, the_champ, Hungarian Translator: László Tavaszi http://kerekmese.hu, Chinese Translator: CalmSmile calmsmile.org, Portuguese Translator: Paulo Purkyt https://www.linkedin.com/in/ppurkyt, Italian Translator: FG3D (Freedom's Gate) https://fg3d.net, Spanish translator: Ignacio Iglesias http://trespies.com, Arabic Translator: http://www.ArabsSM.com, Russian/Ukrainian Translator: Nicholas Lagunov
 Donate link: https://www.heateor.com/donate?action=Super+Socializer
-Tags: social login, social share, line login, social commenting, social comments, social plugin, profile data, social analytics, online identity, social profile storage, single sign-on, social media follow, facebook login, Windows Live Login, Microsoft Login, Wordpress login, Yahoo login, Spotify login, Dribbble login, Kakao login, Github login
+Tags: social login, social share, line login, social commenting, social comments, social plugin, profile data, social analytics, online identity, social profile storage, single sign-on, social media follow, facebook login, twitter login, linkedin login, google login, vkontakte login, Windows Live Login, Microsoft Login, Wordpress login, Yahoo login, Spotify login, Dribbble login, Kakao login, Github login, Twitch login, Instagram login
 Requires at least: 2.5.0
-Tested up to: 5.5.3
-Stable tag: 7.13.6
+Tested up to: 5.6
+Stable tag: 7.13.9
 License: GPLv2 or later
 
 The unique Social Plugin to let you integrate Social Login, Social Share, Social Comments and Social Media follow at your website
@@ -43,7 +43,7 @@ Integrate Social Login, Social Share and Social Comments at your website easiest
 * Mobile responsive sharing interface
 * Compatible with AMP
 * Enable/Disable vertical/floating sharing interface on mobile device
-* Social Login from 7 Social Networks - Facebook, Google, Linkedin, Twitter, Vkontakte, Line, Windows Live (Microsoft), Yahoo, WordPress, Dribbble, Kakao, Spotify, Github and Steam
+* Social Login from 16 Social Networks - Facebook, Google, Linkedin, Twitter, Vkontakte, Line, Windows Live (Microsoft), Yahoo, WordPress, Dribbble, Kakao, Spotify, Github, Twitch, Instagram and Steam
 * Enable Social Login interface at WordPress Login, Register pages and comment form
 * Syncs user's basic social profile data with WordPress profile
 * Enable Social Login at WooCommerce checkout page and customer login form
@@ -212,6 +212,23 @@ Yes, we can help you with it. Just drop an email at support[ at ]heateor[ dot ]c
 8. **Social Commenting**: Disqus Commenting selected
 
 == Changelog ==
+= 7.13.9 [15 December 2020] =
+[Bugfix] Social Avatar saved from Facebook was appearing broken after the changes introduced by Facebook in the October. Users need to login at least once via their Facebook account after this plugin-update to fix the broken social avatar
+
+= 7.13.8 [15 December 2020] =
+[Bugfix] Color of Parler logo was not being updated along with the other icons in the share bar if color changed from the Theme Selection section
+[Bugfix] Parler share was not working in AMP
+[Bugfix] Parler logo was not appearing in the Social Media Follow widget when social sharing was disabled
+[Bugfix] Number of total shares were not being displayed in the sticky floating bar at the bottom of the mobile devices when logo color of the floating share icons was not customized from the Theme Selection section
+
+= 7.13.7 [15 December 2020] =
+[New] Added Twitch in the Social Login networks
+[New] Added Parler share in the social share bar and Parler follow icon in the Social Media Follow Widget
+[Bugfix] CSS for the AMP Social Share icons was also being loaded at the normal web pages
+[Bugfix] Total shares were appearing with a white background in the standard share bar in the mobile devices
+[Improvement] Updated Facebook JS SDK being used throughout the plugin to the latest version 9.0
+[Improvement] Facebook login now doesn't depend on the PHP SDK for Facebook login
+
 = 7.13.6 [7 December 2020] =
 [Bugfix] Instagram login was redirecting to "404 - Page not found"
 
@@ -2155,3 +2172,20 @@ Yes, we can help you with it. Just drop an email at support[ at ]heateor[ dot ]c
 
 = 7.13.6 [7 December 2020] =
 [Bugfix] Instagram login was redirecting to "404 - Page not found"
+
+= 7.13.7 [15 December 2020] =
+[New] Added Twitch in the Social Login networks
+[New] Added Parler share in the social share bar and Parler follow icon in the Social Media Follow Widget
+[Bugfix] CSS for the AMP Social Share icons was also being loaded at the normal web pages
+[Bugfix] Total shares were appearing with a white background in the standard share bar in the mobile devices
+[Improvement] Updated Facebook JS SDK being used throughout the plugin to the latest version 9.0
+[Improvement] Facebook login now doesn't depend on the PHP SDK for Facebook login
+
+= 7.13.8 [15 December 2020] =
+[Bugfix] Color of Parler logo was not being updated along with the other icons in the share bar if color changed from the Theme Selection section
+[Bugfix] Parler share was not working in AMP
+[Bugfix] Parler logo was not appearing in the Social Media Follow widget when social sharing was disabled
+[Bugfix] Number of total shares were not being displayed in the sticky floating bar at the bottom of the mobile devices when logo color of the floating share icons was not customized from the Theme Selection section
+
+= 7.13.9 [15 December 2020] =
+[Bugfix] Social Avatar saved from Facebook was appearing broken after the changes introduced by Facebook in the October. Users need to login at least once via their Facebook account after this plugin-update to fix the broken social avatar

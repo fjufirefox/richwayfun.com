@@ -22,6 +22,11 @@ function theChampMoreSharingPopup(elem, postUrl, postTitle, twitterTitle){
 		locale: "en-US",
 		redirect_url: "http://www.linkedin.com/shareArticle?mini=true&url=" + postUrl + "&title=" + postTitle,
 	  },
+	  parler: {
+		title: "Parler",
+		locale: "en-US",
+		redirect_url: "https://parler.com/new-post?message=" + postTitle + "&url=" + postUrl
+	  },
 	  pinterest: {
 		title: "Pinterest",
 		locale: "en-US",
