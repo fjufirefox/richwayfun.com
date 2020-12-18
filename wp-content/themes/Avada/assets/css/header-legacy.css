@@ -1,15 +1,4 @@
 /* stylelint-disable no-descending-specificity */
-.group {
-  zoom: 1;
-}
-.group:before,
-.group:after {
-  content: " ";
-  display: table;
-}
-.group:after {
-  clear: both;
-}
 /* =================================================================================================
 Table of Contents
 ----------------------------------------------------------------------------------------------------
@@ -431,12 +420,6 @@ body.side-header-right.rtl #side-header .login-box {
   height: 100vh;
   width: 280px;
   pointer-events: none;
-}
-#side-header .side-header-background-color #boxed-wrapper,
-#side-header .side-header-background-image #boxed-wrapper,
-#side-header .side-header-border #boxed-wrapper {
-  top: auto;
-  bottom: auto;
 }
 #side-header .side-header-border {
   z-index: 0;
@@ -2788,6 +2771,9 @@ body.layout-boxed-mode:not(.fusion-top-header) .fusion-footer-parallax {
 body.layout-boxed-mode.side-header-left #wrapper,
 body.layout-boxed-mode.side-header-left .fusion-footer-parallax {
   margin-left: var(--side_header_width);
+}
+body.layout-boxed-mode.side-header-right #boxed-wrapper {
+  position: relative;
 }
 body.layout-boxed-mode.side-header-right #wrapper,
 body.layout-boxed-mode.side-header-right .fusion-footer-parallax {

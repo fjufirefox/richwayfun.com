@@ -24,6 +24,7 @@
 		fusionMegamenu.megamenuFullwidthUpdate();
 
 		fusionMegamenu.specialLinksStatusUpdate();
+		fusionMegamenu.wooCartCounterUpdate();
 
 		// Setup automatic thumbnail handling.
 		jQuery( '#post-body' ).on( 'click', '.avada-remove-button', function() {
@@ -62,6 +63,19 @@
 				}
 
 				fusionMegamenu.updateMegamenuFields();
+			} );
+		},
+
+		wooCartCounterUpdate: function() {
+
+			jQuery( document ).on( 'change', '.edit-menu-item-megamenu-show-woo-cart-counter .button-set-value', function() {
+				var parentLiItem = jQuery( this ).closest( '.menu-item' );
+
+				if ( 'yes' === jQuery( this ).val() ) {
+					parentLiItem.addClass( 'fusion-woo-cart-counter-enabled' );
+				} else {
+					parentLiItem.removeClass( 'fusion-woo-cart-counter-enabled' );
+				}
 			} );
 		},
 

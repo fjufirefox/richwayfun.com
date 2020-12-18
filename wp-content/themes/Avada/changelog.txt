@@ -7,6 +7,124 @@ This is why we highly recommend to stay up to date with each new theme version a
 
 
 -----------------------------------------------------------------------------------------
+Version 7.2 - December 15th, 2020
+-----------------------------------------------------------------------------------------
+
+
+- NEW: The WooCommerce single product builder, allowing fully custom products
+- NEW: Added Avada custom swatches for WooCommerce variable products: colors, images, buttons
+- NEW: WooCommerce Add To Cart element, with dozens of options for price, stock, variations, buy buttons, etc.
+- NEW: WooCommerce Product Images element, with gallery width control, preview thumbnails position, and column amount settings
+- NEW: WooCommerce Short Description element
+- NEW: WooCommerce Tabs element
+- NEW: WooCommerce Additional Information element
+- NEW: WooCommerce Rating element
+- NEW: WooCommerce Reviews element
+- NEW: WooCommerce Stock element
+- NEW: WooCommerce Related Products element
+- NEW: WooCommerce Up-sells element
+- NEW: WooCommerce Notices element
+- NEW: Additions to the Meta element for WooCommerce related data like SKU
+- NEW: Added 9 Global Options to style WooCommerce sale badges (shape, border options, BG color, text color, font-size, contents)
+- NEW: Added a Global Option to set the size of WooCommerce product images gallery thumbnails
+- NEW: Added options for sale and out of stock badges and offset to the WooCommerce carousel elements
+- NEW: WooCommerce product archives now use the responsive column breakpoints to gracefully reduce column amount according to available space
+- NEW: Added 8 new section separator styles plus height and repeat settings
+- NEW: Added several options to Social Sharing elements, like margin, padding, border, color, etc.
+- NEW: Added several options to the Pagination element including preview images, a sticky mode, and taxonomy term settings
+- NEW: Gallery and image carousel elements now supports dynamic data feed, so that ACF galleries, Woo product images, and featured images can be used
+- NEW: 9 prebuilt layouts, including 4 product pages, 3 blog posts, and 2 portfolio posts
+- NEW: Added Reading Time and Word Count options to the Meta element
+- NEW: Added a Menu Option to turn on/off the cart counter in the special cart menu element if cart is empty
+- NEW: Favicon set in Global Options will now also display in admin area
+- NEW: Layout Section elements can now be disabled in the Builder options
+- NEW: Compatibility with Events Calendar 5.3
+- NEW: Compatibility with PHP 8.0
+- PERFORMANCE: Changed JS compiler, so that element relevant scripts will only be loaded, if element is used on a page
+- PERFORMANCE: Added Global Option to preload key fonts (icon fonts, Google fonts)
+- PERFORMANCE: Added Global Options to disable Portfolio and FAQ post types
+- PERFORMANCE: Made sure that only Avada Flexslider script is loaded, when WooCommerce is active
+- IMPROVEMENT: If search is set to only display WooCommerce products, the product layout will now be used for results
+- IMPROVEMENT: Color palette pickers in Global Options now allowing alpha channel
+- IMPROVEMENT: Avada Core and Avada Builder plugins show an info note now when product is not registered
+- UPDATED: reCAPTCHA library now running on version 1.2.4
+- UPDATED: Flexslider script now running on version 2.7.2
+- UPDATED: Facebook SDK version to 8.0
+- UPDATED: Removed Mixer social icon, as the network no longer exists
+- FIXED: Extra closing ">" for the read more tag in the Blog archives
+- FIXED: Saving empty Font Awesome multi-select in Global Options not correctly working
+- FIXED: jQuery "ready" event being double triggered because of conflict with WP's jQuery migrate library
+- FIXED: Featured image width being wrong, when set in percentage values in Page Options
+- FIXED: Self-hosted video in Avada Slider being incorrectly positioned when using parallax mode and side header
+- FIXED: WooCommerce single product pages content width being incorrect when using the Page Option setting
+- FIXED: Plugin names in the prebuilt websites importer dialog still being Fusion Core and Fusion Builder
+- FIXED: Not all needed Global Options auto-updating on changing pre-defined color scheme
+- FIXED: Convert Plus plugin activation not working correctly from the prebuilt websites install modal
+- FIXED: Privacy consent not working correctly on embedded iframes on single Portfolio posts
+- FIXED: Avada Slider keeps auto-playing after touch advance on mobiles
+- FIXED: Avada Slider metadata being wrong when slider is used in a content layout section
+- FIXED: Avada Slider sometimes displaying empty slides, when using slide animation and full-screen mode
+- FIXED: When image lazy loading is enabled the feed page will use placeholder images
+- FIXED: Avada Live "Exit to Dashboard" toolbar link not working for non-admin users
+- FIXED: Text flickering in Title element when using rotating titles in Chrome on Windows 10
+- FIXED: Doubled up icons on Events Calendar pages, when using Events Calendar 5.3+
+- FIXED: Events list widget of Events Calendar 5.3+ plugin not displaying when using Widget element
+- FIXED: Images not loading in Blog element masonry layout when image lazy loading is disabled
+- FIXED: Global elements not translatable with WPML when logged out
+- FIXED: Bulk actions not working in Avada form table
+- FIXED: Form subject fields being incorrectly encoded in submission email in Cyrillic languages
+- FIXED: Date picker popup being behind modal when using Avada form within the Modal element
+- FIXED: reCAPTCHA element not working correctly when several forms use it on the same page
+- FIXED: reCAPTCHA form element using audio instead of text challenge by default when using V2
+- FIXED: Some for inputs not having associated labels
+- FIXED: Option values in Submit element for border size and radius can't be changed
+- FIXED: Widths of containers below a container that is set to draft being wrong on some setups
+- FIXED: Live search overlay not being removed correctly when search input gets deleted
+- FIXED: Redirection URL in Login element strips out spaces, creating issues for some setups
+- FIXED: Select icon in select field not using the set input text color
+- FIXED: Flyout menu not auto-closing, when clicking on an anchor link in Menu element
+- FIXED: Cart icons of the menu cart contents being wrongly positioned in flyout menu in Menu element
+- FIXED: Menu element margin not being auto-removed on last menu item, which leads to positioning issue
+- FIXED: Drop-down menu item active background and text color not correct in cases of hierarchical parents in Menu element
+- FIXED: Lottie element size issues in Safari
+- FIXED: Alignment option in Lottie element not working for medium and small sizes when a max-width is set
+- FIXED: Email link in Social Links element not opening in new tab
+- FIXED: PHP notice in template builder class on the blog front page
+- FIXED: Media Slider element height being incorrect in some cases and throwing PHP notice if a slide is empty
+- FIXED: PHP notice in Image Before & After element, if one of the 2 images is not set
+- FIXED: Custom footer layout having styling issues (headings, social icons) on Events Calendar pages
+- FIXED: Fatal error happening on using tags in the Meta element when a third party plugin alters the get_the_tag_list() return type
+- FIXED: Compatibility issue with PrivateContent plugin and Avada's Layout Builder
+- FIXED: Compatibility issue with Download Manager plugin and Avada's Layout Builder
+- FIXED: Compatibility issue with Members plugin and Avada's Layout Builder
+- FIXED: Compatibility issue on search results page YITH WooCommerce Ajax Search Premium plugin
+- FIXED: Compatibility issue, where some plugins cause a PHP notice in function fusion_app_get_permalink()
+- FIXED: Compatibility issue between WooCommerce Terms & Conditions page and layout sections
+- FIXED: PHP notice on saving an Avada form when YOAST SEO is active
+- FIXED: PHP issue in Tabs element in backend editor, when Yoast SEO's page analysis tool is active
+- FIXED: Clicking update on Custom Icon Set screen creating a new directory
+- FIXED: Custom icons not available in backend editor on an unpublished page
+- FIXED: Infinite scroll being broken with the use of Archive element
+- FIXED: Sticky sidebars not working for logged out users
+- FIXED: Title element spacing between text and separator missing when using div tag
+- FIXED: 404 and Search page layouts sharing same CSS cache ID, leading to incorrect CSS output
+- FIXED: JS error on removing conditions from layouts after using the post search
+- FIXED: ID collision between Avada Form and layout section, when both are used on same page, leading to layout issues
+- FIXED: Font family options using italic not being correctly set
+- FIXED: "Edit Live" link in WP admin bar linking to homepage when editing a layout section
+- FIXED: Testimonial element background being off on WordPress 5.6
+- FIXED: Sticky containers not working correctly in WordPress 5.6
+- FIXED: Font family changes being off in Avada Live Builder in WordPress 5.6
+- FIXED: Display issue in Avada Live Builder when using the anchor name option in Container element
+- FIXED: Cloning of Nested Columns element in Avada Live Builder changing the column width
+- FIXED: Blog element masonry layout having re-render issues in Avada Live Builder
+- FIXED: Images not displaying correctly for Gallery element in masonry mode in Avada Live Builder
+- FIXED: "Avada Form" link being doubled in the "New" menu in toolbar of Avada Live Builder
+- FIXED: Links added to Image element leading to loading of the linked page in wrong frame in Avada Live Builder
+- FIXED: Small display issue in warning dialog in the Avada Live Builder
+
+
+-----------------------------------------------------------------------------------------
 Version 7.1.2 - December 07th, 2020
 -----------------------------------------------------------------------------------------
 
@@ -29,6 +147,7 @@ Version 7.1.1 - October 15th, 2020
 - NEW: Compatibility with WooCommerce 4.6
 - IMPROVEMENT: Added a dependency to Custom Headers option in Avada Form Builder to avoid confusion
 - IMPROVEMENT: Changed styling of WPML translation options in Avada's Layout Builder
+- IMPROVEMENT: Updated several info boxes, option descriptions and dependencies for better usability
 - FIXED: Load more button not working correctly
 - FIXED: Lightbox not working, when social icons are disabled
 - FIXED: Image element setting image height attribute incorrectly

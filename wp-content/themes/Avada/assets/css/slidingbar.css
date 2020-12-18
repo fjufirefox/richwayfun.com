@@ -1,16 +1,5 @@
 /* stylelint-disable no-descending-specificity */
 /* Sliding Bar */
-.group {
-  zoom: 1;
-}
-.group:before,
-.group:after {
-  content: " ";
-  display: table;
-}
-.group:after {
-  clear: both;
-}
 .fusion-sliding-bar-area {
   display: flex;
   flex-wrap: wrap;

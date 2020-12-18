@@ -1,16 +1,5 @@
 /* stylelint-disable no-descending-specificity */
 /* stylelint-disable no-duplicate-selectors */
-.group {
-  zoom: 1;
-}
-.group:before,
-.group:after {
-  content: " ";
-  display: table;
-}
-.group:after {
-  clear: both;
-}
 .wpcf7-form .wpcf7-number,
 .wpcf7-form .wpcf7-quiz,
 .wpcf7-form .wpcf7-text,

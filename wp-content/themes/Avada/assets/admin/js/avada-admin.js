@@ -657,7 +657,7 @@ jQuery( document ).ready( function() {
 			var href              = jQuery( this ).attr( 'href' ),
 				hrefHash          = href.substr( href.indexOf( '#' ) ).slice( 1 ),
 				target            = jQuery( '#' + hrefHash ),
-				adminbarHeight    = jQuery( '#wpadminbar' ).height(),
+				adminbarHeight    = jQuery( '#wpadminbar' ).length ? jQuery( '#wpadminbar' ).height() : 0,
 				newScrollPosition = target.offset().top - adminbarHeight;
 
 			e.preventDefault();
@@ -884,7 +884,7 @@ jQuery( document ).ready( function() {
 		var href               = jQuery( this ).attr( 'href' ),
 			target             = jQuery( href ),
 			animationRoot      = ( jQuery( 'html' ).hasClass( 'ua-edge' ) || jQuery( 'html' ).hasClass( 'ua-safari-12' ) || jQuery( 'html' ).hasClass( 'ua-safari-11' ) || jQuery( 'html' ).hasClass( 'ua-safari-10' ) ) ? 'body' : 'html',
-			adminbarHeight     = jQuery( '#wpadminbar' ).height(),
+			adminbarHeight     = jQuery( '#wpadminbar' ).length ? jQuery( '#wpadminbar' ).height() : 0,
 			stickyHeaderHeight = jQuery( '.avada-db-header-sticky' ).height(),
 			newScrollPosition  = target.offset().top - adminbarHeight - stickyHeaderHeight;
 

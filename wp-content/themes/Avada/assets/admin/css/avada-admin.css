@@ -141,7 +141,10 @@
 }
 .avada-dashboard .avada-db-header-main .avada-db-logo .avada-db-logo-image img {
   display: block;
-  width: 97px;
+  width: 115px;
+  margin-left: -25px;
+  -webkit-clip-path: inset(0 0 0 25px);
+          clip-path: inset(0 0 0 25px);
 }
 .avada-dashboard .avada-db-header-main .avada-db-logo .avada-db-logo-version {
   margin-top: 0.2em;
@@ -1951,10 +1954,10 @@
   .avada-dashboard .avada-db-welcome-setup {
     flex-direction: column;
   }
-  .avada-dashboard .avada-db-welcome-setup-completed .avada-db-welcome {
+  .avada-dashboard .avada-db-welcome-setup-completed .avada-db-welcome-container {
     flex-direction: column;
   }
-  .avada-dashboard .avada-db-welcome-setup-completed .avada-db-welcome .avada-db-welcome-video {
+  .avada-dashboard .avada-db-welcome-setup-completed .avada-db-welcome-container .avada-db-welcome-video {
     margin-bottom: 2.8em;
   }
   .avada-dashboard.avada-db-builder-options .fusion-builder-option {
@@ -1965,27 +1968,27 @@
   }
 }
 @media screen and (max-width: 870px) {
+  .avada-dashboard .avada-db-menu-sticky .avada-db-menu-sticky-label {
+    display: none;
+  }
+  .ltr .avada-dashboard .avada-db-menu-sticky .avada-db-menu-item:nth-child(4) .avada-db-menu-sub {
+    right: 0;
+  }
+  .rtl .avada-dashboard .avada-db-menu-sticky .avada-db-menu-item:nth-child(4) .avada-db-menu-sub {
+    left: 0;
+  }
+  .avada-dashboard .avada-db-menu-sticky .avada-db-menu-item-link {
+    flex-flow: column;
+    padding: 1.5em 0;
+  }
+  .avada-dashboard .avada-db-menu-sticky .avada-db-menu-item-link .avada-db-menu-item-text {
+    margin-top: 0.3em;
+  }
   .ltr .avada-dashboard .avada-db-menu .avada-db-menu-item:last-child .avada-db-menu-sub {
     right: 0;
   }
   .rtl .avada-dashboard .avada-db-menu .avada-db-menu-item:last-child .avada-db-menu-sub {
     left: 0;
-  }
-  .avada-dashboard .avada-db-menu .avada-db-menu-sticky .avada-db-menu-sticky-label {
-    display: none;
-  }
-  .ltr .avada-dashboard .avada-db-menu .avada-db-menu-sticky .avada-db-menu-item:nth-child(4) .avada-db-menu-sub {
-    right: 0;
-  }
-  .rtl .avada-dashboard .avada-db-menu .avada-db-menu-sticky .avada-db-menu-item:nth-child(4) .avada-db-menu-sub {
-    left: 0;
-  }
-  .avada-dashboard .avada-db-menu .avada-db-menu-sticky .avada-db-menu-item-link {
-    flex-flow: column;
-    padding: 1.5em 0;
-  }
-  .avada-dashboard .avada-db-menu .avada-db-menu-sticky .avada-db-menu-item-link .avada-db-menu-item-text {
-    margin-top: 0.3em;
   }
   .avada-dashboard .avada-db-footer .avada-db-footer-menu ul,
   .avada-dashboard .avada-db-footer .avada-db-footer-menu-bottom {
@@ -2134,6 +2137,9 @@
   .avada-dashboard .avada-db-menu-sticky-nav .avada-db-menu-item {
     margin: 0 1.05em;
   }
+  .avada-dashboard .avada-db-menu {
+    font-size: 0.9em;
+  }
   .avada-dashboard .avada-db-header-sticky {
     top: 0;
   }
@@ -2151,6 +2157,12 @@
     column-gap: 2.8em;
     row-gap: 1em;
     font-size: 0.8em;
+  }
+}
+/* Mobile query. */
+@media screen and (max-width: 480px) {
+  .avada-dashboard .avada-db-menu {
+    font-size: 0.75em;
   }
 }
 @keyframes spin {

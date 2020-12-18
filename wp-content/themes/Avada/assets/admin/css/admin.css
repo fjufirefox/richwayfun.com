@@ -993,8 +993,14 @@
   display: flex;
   align-items: center;
 }
-#themefusion-news .fusion-dbw-logo img {
+#themefusion-news .fusion-dbw-logo .fusion-dbw-image-wrapper {
   margin: 0 0.5em;
+  line-height: 1;
+}
+#themefusion-news .fusion-dbw-logo .fusion-dbw-image-wrapper img {
+  margin-left: -25px;
+  -webkit-clip-path: inset(0 0 0 25px);
+          clip-path: inset(0 0 0 25px);
 }
 #themefusion-news .fusiona-avada-logo {
   display: flex;
@@ -1046,12 +1052,12 @@
   padding: 0 15px;
   border-left: 1px solid #eee;
 }
-#themefusion-news .fusion-dbw-footer > ul > li > a {
-  transition: color 0.2s;
-}
 #themefusion-news .fusion-dbw-footer > ul > li:first-child {
   padding-left: 0;
   border-left: none;
+}
+#themefusion-news .fusion-dbw-footer > ul > li > a {
+  transition: color 0.2s;
 }
 /* TGMPA Install/Update Page */
 .wrap.tgmpa .subsubsub {

@@ -303,8 +303,9 @@ jQuery( window ).on( 'load', function() {
 
 		}
 
-		// Trigeer special links.
-		jQuery( '.fusion-megamenu-special-link' ).trigger( 'change' );
+		// Trigger special links.
+		jQuery( $modal ).find( '.fusion-megamenu-special-link' ).trigger( 'change' );
+		jQuery( $modal ).find( '.edit-menu-item-megamenu-show-woo-cart-counter .button-set-value' ).trigger( 'change' );
 
 	} );
 
