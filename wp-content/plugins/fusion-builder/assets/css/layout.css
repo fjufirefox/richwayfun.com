@@ -349,7 +349,7 @@
 .fusion-builder-elements-primary_background_color_elements {
   background-color: var(--primary_color);
 }
-.products .product-list-view {
+.products .product-list-view .fusion-product-wrapper {
   padding-left: var(--timeline_bg_color-20px-transparent);
   padding-right: var(--timeline_bg_color-20px-transparent);
 }
