@@ -824,7 +824,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					cursorAt: { top: 15, left: 15 },
 					iframeScroll: true,
 					containment: $body,
-					cancel: '.fusion-live-editable, .fusion-builder-live-child-element:not( [data-fusion-no-dragging] )',
+					cancel: '.fusion-live-editable, .fusion-builder-live-child-element:not( [data-fusion-no-dragging] ), .variations select',
 					helper: function() {
 						var $classes = FusionPageBuilderApp.DraggableHelpers.draggableClasses( cid );
 						return jQuery( '<div class="fusion-element-helper ' + $classes + '" data-cid="' + cid + '"><span class="' + fusionAllElements[ self.model.get( 'element_type' ) ].icon + '"></span></div>' );
@@ -1234,6 +1234,52 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				} else {
 					FusionApp.callback[ callbackFunction[ 'function' ] ]( cid, callbackFunction.content, callbackFunction.parent );
 				}
+			},
+
+			addCssProperty: function ( selectors, property, value, important ) {
+
+				if ( 'object' === typeof selectors ) {
+					selectors = Object.values( selectors );
+				}
+
+				if ( 'object' === typeof selectors ) {
+					selectors = selectors.join( ',' );
+				}
+
+				if ( 'object' !== typeof this.dynamic_css[ selectors ] ) {
+					this.dynamic_css[ selectors ] = {};
+				}
+
+				if ( 'undefined' !== typeof important && important ) {
+					value += ' !important';
+				}
+				if ( 'undefined' === typeof this.dynamic_css[ selectors ][ property ] || ( 'undefined' !== typeof important && important ) || ! this.dynamic_css[ selectors ][ property ].includes( 'important' ) ) {
+					this.dynamic_css[ selectors ][ property ] = value;
+				}
+			},
+
+			isDefault: function( param ) {
+				return this.values[ param ] === fusionAllElements[ this.model.get( 'element_type' ) ].defaults[ param ];
+			},
+
+			parseCSS: function () {
+				var css = '';
+
+				if ( 'object' !== typeof this.dynamic_css ) {
+					return '';
+				}
+
+				_.each( this.dynamic_css, function ( properties, selector ) {
+					if ( 'object' === typeof properties ) {
+						css += selector + '{';
+						_.each( properties, function ( value, property ) {
+							css += property + ':' + value + ';';
+						} );
+						css += '}';
+					}
+				} );
+
+				return css;
 			}
 
 		} );

@@ -7,6 +7,32 @@ This is why we highly recommend to stay up to date with each new theme version a
 
 
 -----------------------------------------------------------------------------------------
+Version 7.2.1 - December 21th, 2020
+-----------------------------------------------------------------------------------------
+
+
+- NEW: Added product sorting options to the WooCommerce Carousel elements
+- NEW: Direct link to a Toggle element item is now possible on page load and when linking from another page
+- UPDATED: Child theme in full package, to reflect change for stylesheet dependency
+- FIXED: WooCommerce list view styling being incorrect
+- FIXED: WooCommerce responsive columns not working for the product category shortcode
+- FIXED: Featured image slider on pages / posts not working
+- FIXED: Container element background videos not working
+- FIXED: Lightbox not working on posts / single portfolio items
+- FIXED: Lightbox thumbnail request for Vimeo videos leading to 301 and to lightbox loop request
+- FIXED: Lightbox images being too large in height when no image title is displayed
+- FIXED: Fixed mode in Gallery element loading full sized images
+- FIXED: Infinite scroll and load more not working in Recent Posts element
+- FIXED: Email subject encoding option not working correctly
+- FIXED: Legacy header causing a jump on scroll when sticky header kicks in, in certain setups
+- FIXED: Google Map missing from legacy Contact Page template
+- FIXED: Avada Form submission to URL option not respecting server response
+- FIXED: PHP notice on termps page of WooCommerce Attributes when using Avada Button type
+- FIXED: Custom veriation terms missing from import of new WooCommerce prebuilt websites
+- FIXED: Avada Live editor not working in some cases, depending on post type selection
+
+
+-----------------------------------------------------------------------------------------
 Version 7.2 - December 15th, 2020
 -----------------------------------------------------------------------------------------
 

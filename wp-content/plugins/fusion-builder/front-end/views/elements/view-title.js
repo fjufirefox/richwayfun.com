@@ -52,7 +52,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Any extras that need passed on.
 				attributes.cid            			= this.model.get( 'cid' );
-				attributes.output         			= atts.values.element_content;
+				attributes.output         			= 'string' === typeof atts.values.element_content ? atts.values.element_content : '';
 				attributes.style_type     			= atts.values.style_type;
 				attributes.size           			= atts.values.size;
 				attributes.content_align  			= atts.values.content_align;
@@ -104,7 +104,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				// Make sure the title text is not wrapped with an unattributed p tag.
-				if ( 'undefined' !== typeof values.element_content ) {
+				if ( 'string' === typeof values.element_content ) {
 					values.element_content = values.element_content.trim();
 					values.element_content = values.element_content.replace( /(<p[^>]+?>|<p>|<\/p>)/img, '' );
 				}

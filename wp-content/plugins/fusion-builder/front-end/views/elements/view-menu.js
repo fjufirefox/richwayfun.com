@@ -57,7 +57,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			},
 
 			getStyles: function () {
-				var selectors, gap_value, gap_unit, half_gap, value, unit, half;
+				var selectors, gap_value, gap_unit, half_gap, value, unit, half,
+				menuStyles = {},
+				self       = this;;
 
 				this.baseSelector = '.fusion-menu-element-wrapper[data-count="' +  this.model.get('cid') + '"]';
 				this.dynamic_css  = {};
@@ -87,24 +89,20 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				  this.addCssProperty( this.baseSelector + ' .fusion-menu-element-list', 'align-items',  this.values['align_items']);
 				}
 
-				if (!this.isDefault('fusion_font_family_typography')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list', this.baseSelector + ' > .avada-menu-mobile-menu-trigger', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-submenu .fusion-megamenu-title' ];
-				  this.addCssProperty(selectors, 'font-family',  this.values['fusion_font_family_typography']);
-				}
+				selectors  = [ this.baseSelector + ' .fusion-menu-element-list', this.baseSelector + ' > .avada-menu-mobile-menu-trigger', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-submenu .fusion-megamenu-title' ];
+				menuStyles = _.fusionGetFontStyle( 'typography', this.values, 'object' );
+				jQuery.each( menuStyles, function( rule, value ) {
+					self.addCssProperty( selectors, rule, value );
+				} );
 
 				this.addCssProperty([ this.baseSelector + ' [class*="fusion-icon-"]', this.baseSelector + ' [class^="fusion-icon-"]' ], 'font-family',  this.values['fusion_font_family_typography'], true);
-				// Font Weight.
-				if (!this.isDefault('fusion_font_variant_typography')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-submenu .fusion-megamenu-title' ];
-				  this.addCssProperty(selectors, 'font-weight',  this.values['fusion_font_variant_typography']);
-				}
 
 				if (!this.isDefault('min_height')) {
 				  this.addCssProperty( this.baseSelector + ' .fusion-menu-element-list', 'min-height',  this.values['min_height']);
 				}
 
 				if (!this.isDefault('sticky_min_height')) {
-				  this.addCssProperty('.fusion-sticky-container.fusion-sticky-transition ' +  this.baseSelector + ' .fusion-menu-element-list', 'min-height',  this.values['sticky_min_height']);
+				  this.addCssProperty('.fusion-body .fusion-sticky-container.fusion-sticky-transition ' +  this.base_selector_no_body + ' .fusion-menu-element-list', 'min-height',  this.values['sticky_min_height']);
 				}
 
 				if (!this.isDefault('text_transform')) {
@@ -246,12 +244,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if (!this.isDefault('items_padding_right')) {
 				  if (jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method']) {
-				    this.addCssProperty(['.ltr ' +  this.baseSelector + '.expand-method-click li.menu-item-has-children:not(.fusion-menu-item-button) > .fusion-open-nav-submenu' ], 'padding-right',  this.values['items_padding_right']);
+				    this.addCssProperty(['.ltr' +  this.baseSelector + '.expand-method-click li.menu-item-has-children:not(.fusion-menu-item-button) > .fusion-open-nav-submenu' ], 'padding-right',  this.values['items_padding_right']);
 				  }
 
 				  selectors = [ this.baseSelector + ':not(.collapse-enabled) .fusion-menu-form-inline', this.baseSelector + ':not(.collapse-enabled) .custom-menu-search-overlay ~ .fusion-overlay-search', this.baseSelector + ':not(.collapse-enabled) .fusion-menu-element-list .custom-menu-search-overlay .fusion-overlay-search', this.baseSelector + ':not(.collapse-enabled) .fusion-menu-element-list .fusion-menu-form-inline' ];
 				  if (jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method'] && 'column' ===  this.values['direction']) {
-				    selectors.push('.ltr ' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children > a');
+				    selectors.push('.ltr' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children > a');
 				  }
 
 				  this.addCssProperty(selectors, 'padding-right',  this.values['items_padding_right']);
@@ -260,13 +258,13 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if (!this.isDefault('items_padding_left')) {
 				  if (jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method']) {
-				    selectors = ['.rtl ' +  this.baseSelector + '.expand-method-click li.menu-item-has-children:not(.fusion-menu-item-button) > .fusion-open-nav-submenu' ];
+				    selectors = ['.rtl' +  this.baseSelector + '.expand-method-click li.menu-item-has-children:not(.fusion-menu-item-button) > .fusion-open-nav-submenu' ];
 				    this.addCssProperty(selectors, 'padding-left',  this.values['items_padding_left']);
 				  }
 
 				  selectors = [ this.baseSelector + ':not(.collapse-enabled) .fusion-menu-form-inline', this.baseSelector + ':not(.collapse-enabled) .custom-menu-search-overlay ~ .fusion-overlay-search', this.baseSelector + ':not(.collapse-enabled) .fusion-menu-element-list .custom-menu-search-overlay .fusion-overlay-search', this.baseSelector + ':not(.collapse-enabled) .fusion-menu-element-list .fusion-menu-form-inline' ];
 				  if (jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method'] && 'column' ===  this.values['direction']) {
-				    selectors.push('.ltr ' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children > a');
+				    selectors.push('.ltr' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children > a');
 				  }
 
 				  this.addCssProperty(selectors, 'padding-left',  this.values['items_padding_left']);
@@ -915,15 +913,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				}
 
-				if (!this.isDefault('fusion_font_family_submenu_typography')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list .sub-menu > li', this.baseSelector + ' .fusion-menu-element-list .sub-menu li a' ];
-				  this.addCssProperty(selectors, 'font-family',  this.values['fusion_font_family_submenu_typography']);
-				}
-
-				if (!this.isDefault('fusion_font_variant_submenu_typography')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list .sub-menu > li', this.baseSelector + ' .fusion-menu-element-list .sub-menu li a' ];
-				  this.addCssProperty(selectors, 'font-weight',  this.values['fusion_font_variant_submenu_typography']);
-				}
+				selectors = [ this.baseSelector + ' .fusion-menu-element-list .sub-menu > li', this.baseSelector + ' .fusion-menu-element-list .sub-menu li a' ];
+				menuStyles = _.fusionGetFontStyle( 'submenu_typography', this.values, 'object' );
+				jQuery.each( menuStyles, function( rule, value ) {
+					self.addCssProperty( selectors, rule, value );
+				} );
 
 				if (!this.isDefault('submenu_bg')) {
 				  selectors = [ this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-holder', this.baseSelector + ' .sub-menu .fusion-menu-cart', this.baseSelector + ' .custom-menu-search-dropdown .fusion-menu-searchform-dropdown .fusion-search-form-content', this.baseSelector + ' .avada-menu-login-box .avada-custom-menu-item-contents' ];
@@ -1017,7 +1011,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				if (!this.isDefault('submenu_active_bg')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):hover', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):focus', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button).expanded', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within > .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within > .fusion-background-highlight', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover' ];
+				  selectors = [ this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):hover', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):focus', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):focus-within', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button).expanded', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current_page_item:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within > .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within > .fusion-background-highlight', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover' ];
 				  this.addCssProperty(selectors, 'background-color',  this.values['submenu_active_bg']);
 				  if ('column' ===  this.values['direction']) {
 				    selectors = [ ];
@@ -1074,7 +1068,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if (!this.isDefault('submenu_active_color')) {
 				  // Important ones.
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within > .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within .fusion-open-nav-submenu', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover .fusion-open-nav-submenu', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within > .fusion-background-highlight', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover' ];
+				  selectors = [ this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:not(.fusion-menu-item-button).current-menu-item > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:not(.fusion-menu-item-button).current-menu-item > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within > .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within .fusion-open-nav-submenu', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover .fusion-open-nav-submenu', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within > .fusion-background-highlight', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover' ];
 				  if (true) {
 				    selectors.push( this.baseSelector + ' .fusion-menu-cart-checkout:hover .fusion-menu-cart-link a');
 				    selectors.push( this.baseSelector + ' .fusion-menu-cart-checkout:hover .fusion-menu-cart-checkout-link a');
@@ -1118,19 +1112,23 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				  }
 
 				  if ('column' ===  this.values['direction'] && jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method']) {
-				    selectors.push('.ltr ' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children li a');
+				    selectors.push('.ltr' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children li a');
 				  }
 
 				  if (true) {
-				    selectors.push('.rtl ' +  this.baseSelector + ' .fusion-menu-cart-link');
-				    selectors.push('.ltr ' +  this.baseSelector + ' .fusion-menu-cart-checkout-link');
+				    selectors.push( this.baseSelector + ' .fusion-menu-cart-checkout');
 				  }
 
 				  if ('flyout' ===  this.values['submenu_mode']) {
-				    selectors.push('.ltr ' +  this.baseSelector + '.submenu-mode-flyout:not(.collapse-enabled) .sub-menu li:not(.fusion-menu-item-button) > a');
+				    selectors.push('.ltr' +  this.baseSelector + '.submenu-mode-flyout:not(.collapse-enabled) .sub-menu li:not(.fusion-menu-item-button) > a');
 				  }
 
 				  this.addCssProperty(selectors, 'padding-right',  this.values['submenu_items_padding_right']);
+				  if (true) {
+				    this.addCssProperty('.rtl' +  this.baseSelector + ' .fusion-menu-cart-link', 'padding-right', '0');
+				    this.addCssProperty('.ltr' +  this.baseSelector + ' .fusion-menu-cart-checkout-link', 'padding-right', '0');
+				  }
+
 				}
 
 				if (!this.isDefault('submenu_items_padding_bottom')) {
@@ -1149,19 +1147,23 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				  }
 
 				  if ('column' ===  this.values['direction'] && jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method']) {
-				    selectors.push('.rtl ' +  this.baseSelector + '.direction-column.expand-method-click.expand-right .menu-item-has-children li a');
+				    selectors.push('.rtl' +  this.baseSelector + '.direction-column.expand-method-click.expand-right .menu-item-has-children li a');
 				  }
 
 				  if (true) {
-				    selectors.push('.rtl ' +  this.baseSelector + ' .fusion-menu-cart-checkout-link');
-				    selectors.push('.ltr ' +  this.baseSelector + ' .fusion-menu-cart-link');
+				    selectors.push( this.baseSelector + ' .fusion-menu-cart-checkout');
 				  }
 
 				  if ('flyout' ===  this.values['submenu_mode']) {
-				    selectors.push('.rtl ' +  this.baseSelector + '.submenu-mode-flyout:not(.collapse-enabled) .sub-menu li:not(.fusion-menu-item-button) > a');
+				    selectors.push('.rtl' +  this.baseSelector + '.submenu-mode-flyout:not(.collapse-enabled) .sub-menu li:not(.fusion-menu-item-button) > a');
 				  }
 
 				  this.addCssProperty(selectors, 'padding-left',  this.values['submenu_items_padding_left']);
+				  if (true) {
+				    this.addCssProperty('.rtl' +  this.baseSelector + ' .fusion-menu-cart-checkout-link', 'padding-left', '0');
+				    this.addCssProperty('.ltr' +  this.baseSelector + ' .fusion-menu-cart-link', 'padding-left', '0');
+				  }
+
 				}
 
 				if ( (!this.isDefault('submenu_items_padding_left') || !this.isDefault('submenu_items_padding_right')) && 'click' ===  this.values['expand_method']) {
@@ -1219,11 +1221,13 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				this.addCssProperty([ this.baseSelector + ' .custom-menu-search-dropdown:hover .fusion-main-menu-icon', this.baseSelector + ' .custom-menu-search-overlay:hover .fusion-menu-icon-search.trigger-overlay', this.baseSelector + ' .custom-menu-search-overlay:hover ~ .fusion-overlay-search' ], 'color',  this.values['icons_hover_color'], true);
 				// Thumbnail size.
 				if (!this.isDefault('thumbnail_size_width')) {
-				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) a > .fusion-megamenu-image > img', 'width',  this.values['thumbnail_size_width']);
+				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) .fusion-megamenu-title .fusion-megamenu-image > img', 'width',  this.values['thumbnail_size_width']);
+				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) .fusion-megamenu-title .fusion-megamenu-thumbnail > img', 'width',  this.values['thumbnail_size_width']);
 				}
 
 				if (!this.isDefault('thumbnail_size_height')) {
-				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) a > .fusion-megamenu-image > img', 'height',  this.values['thumbnail_size_height']);
+				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) .fusion-megamenu-title .fusion-megamenu-image > img', 'height',  this.values['thumbnail_size_height']);
+				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) .fusion-megamenu-title .fusion-megamenu-thumbnail > img', 'height',  this.values['thumbnail_size_width']);
 				}
 
 				if (!this.isDefault('mobile_trigger_font_size')) {
@@ -1268,15 +1272,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				    this.addCssProperty([ this.baseSelector + '.collapse-enabled .fusion-menu-element-list li a', this.baseSelector + '.collapse-enabled .fusion-menu-element-list li a .fusion-button', this.baseSelector + '.collapse-enabled .fusion-menu-element-list li .fusion-open-nav-submenu:before', this.baseSelector + '.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a' ], 'font-size',  this.values['mobile_font_size']);
 				  }
 
-				  if (  !  this.isDefault('fusion_font_family_mobile_typography')) {
-				    selectors = [ this.baseSelector + '.collapse-enabled', this.baseSelector + '.collapse-enabled ul li > a', this.baseSelector + '.collapse-enabled ul li > a .fusion-button', this.baseSelector + '.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a' ];
-				    this.addCssProperty(selectors, 'font-family',  this.values['fusion_font_family_mobile_typography']);
-				  }
-
-				  if (  !  this.isDefault('fusion_font_variant_mobile_typography')) {
-				    selectors = [ this.baseSelector + '.collapse-enabled', this.baseSelector + '.collapse-enabled ul li > a', this.baseSelector + '.collapse-enabled ul li > a .fusion-button', this.baseSelector + '.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a' ];
-				    this.addCssProperty(selectors, 'font-weight',  this.values['fusion_font_variant_mobile_typography']);
-				  }
+					selectors = [ this.baseSelector + '.collapse-enabled', this.baseSelector + '.collapse-enabled ul li > a', this.baseSelector + '.collapse-enabled ul li > a .fusion-button', this.baseSelector + '.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a' ];
+					menuStyles = _.fusionGetFontStyle( 'mobile_typography', this.values, 'object' );
+					jQuery.each( menuStyles, function( rule, value ) {
+						self.addCssProperty( selectors, rule, value );
+					} );
 
 				}
 
@@ -1338,6 +1338,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 							'mobile-trigger-fullwidth-' + this.values.mobile_nav_trigger_fullwidth,
 							'mobile-indent-' + this.values.mobile_indent_submenu,
 							'mobile-justify-' + this.values.mobile_justify_content,
+							'main-justify-' + this.values.main_justify_content,
 						].join( ' ' ),
 						style: ''
 					};

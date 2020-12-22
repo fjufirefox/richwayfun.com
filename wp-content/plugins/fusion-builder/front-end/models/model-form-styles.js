@@ -126,6 +126,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			  this.addCssProperty( this.baseSelector + ' .fusion-form-input-with-icon > i', 'color',  this.formData['form_text_color'], true);
 			  // Input text color.
 			  this.addCssProperty(inputs, 'color',  this.formData['form_text_color']);
+
+			  // Select stroke color.
+			  this.addCssProperty( this.baseSelector + ' .fusion-select-wrapper .select-arrow path', 'stroke', this.formData['form_text_color'], true );
 			}
 
 			if ( !this.isDefault( 'form_label_color' ) ) {

@@ -60,7 +60,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Get default options
 				defaultParams = fusionAllElements.fusion_builder_column_inner.params;
-				params = {};
+				params        = {};
 
 				// Process default parameters from shortcode
 				_.each( defaultParams, function( param )  {

@@ -24,17 +24,17 @@
 .fusion-slider-sc:hover .flex-prev:hover {
   opacity: 1;
 }
-.fusion-slider-sc.fusion-aligncenter {
+.fusion-slider-sc .fusion-aligncenter {
   margin-left: auto;
   margin-right: auto;
 }
-.fusion-slider-sc.fusion-slider-sc-cover .slides,
-.fusion-slider-sc.fusion-slider-sc-cover .image,
-.fusion-slider-sc.fusion-slider-sc-cover .fusion-image-hover-element,
-.fusion-slider-sc.fusion-slider-sc-cover img {
+.fusion-slider-sc .fusion-slider-sc-cover .slides,
+.fusion-slider-sc .fusion-slider-sc-cover .image,
+.fusion-slider-sc .fusion-slider-sc-cover .fusion-image-hover-element,
+.fusion-slider-sc .fusion-slider-sc-cover img {
   height: 100%;
 }
-.fusion-slider-sc.fusion-slider-sc-cover .slides .image img {
+.fusion-slider-sc .fusion-slider-sc-cover .slides .image img {
   -o-object-fit: cover;
      object-fit: cover;
 }

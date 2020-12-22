@@ -27,7 +27,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				data: {
 					action: 'fusion_get_widget_form'
 				}
-			} ).success( function( response ) {
+			} ).done( function( response ) {
 				widgetDataLoaded 	= true;
 				widgetDataLoading 	= false;
 				widgetData			= response.data;

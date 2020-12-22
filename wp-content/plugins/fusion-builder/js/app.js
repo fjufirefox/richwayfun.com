@@ -1510,6 +1510,8 @@ var FusionPageBuilderEvents = _.extend( {}, Backbone.Events );
 					jQuery( '#fusion-builder-layouts-headers-trigger' ).click();
 				} else if ( jQuery( '#fusion-builder-layouts-forms-trigger' ).length ) {
 					jQuery( '#fusion-builder-layouts-forms-trigger' ).click();
+				} else if ( jQuery( '#fusion-builder-layouts-content-trigger' ).length ) {
+					jQuery( '#fusion-builder-layouts-content-trigger' ).click();
 				} else {
 					jQuery( '#fusion-builder-layouts-demos-trigger' ).click();
 				}
@@ -2583,6 +2585,19 @@ var FusionPageBuilderEvents = _.extend( {}, Backbone.Events );
 							if ( shortcodeAttributes.named.radial_direction in radiaDirectionsNew ) {
 								shortcodeAttributes.named.radial_direction = radiaDirectionsNew[ shortcodeAttributes.named.radial_direction ];
 							}
+						}
+
+						if ( 'fusion_tb_meta' === shortcodeName ) {
+							// Border sizes.
+							if ( ( 'undefined' === typeof shortcodeAttributes.named.border_top ||
+								'undefined' === typeof shortcodeAttributes.named.border_bottom ||
+								'undefined' === typeof shortcodeAttributes.named.border_left ||
+								'undefined' === typeof shortcodeAttributes.named.border_right ) &&
+								'string' === typeof shortcodeAttributes.named.border_size ) {
+								shortcodeAttributes.named.border_top    = shortcodeAttributes.named.border_size + 'px';
+								shortcodeAttributes.named.border_bottom = shortcodeAttributes.named.border_size + 'px';
+							}
+							delete shortcodeAttributes.named.border_size;
 						}
 
 						if ( 'fusion_builder_container' === shortcodeName ) {
@@ -4556,8 +4571,9 @@ var FusionPageBuilderEvents = _.extend( {}, Backbone.Events );
 
 		// Sticky builder header
 		function fusionBuilderEnableStickyHeader() {
-			var builderHeader = document.getElementById( 'fusion_builder_controls' );
-			fusionBuilderStickyHeader( builderHeader, jQuery( '#wpadminbar' ).height() );
+			var builderHeader  = document.getElementById( 'fusion_builder_controls' ),
+				adminbarHeight = jQuery( '#wpadminbar' ).length ? jQuery( '#wpadminbar' ).height() : 0;
+			fusionBuilderStickyHeader( builderHeader, adminbarHeight );
 		}
 
 		function fusionBuilderActivate( toggle ) {

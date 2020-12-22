@@ -54,7 +54,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						{
 							generator_only: 'undefined' !== typeof element.generator_only ? true : element.generator_only,
 							templates: 'undefined' !== typeof element.templates ? element.templates : false,
-							components_per_template: 'undefined' !== typeof element.components_per_template ? element.components_per_template : false
+							components_per_template: 'undefined' !== typeof element.components_per_template ? element.components_per_template : false,
+							template_tooltip: 'undefined' !== typeof element.template_tooltip ? element.template_tooltip : false
 						}
 					)
 				);

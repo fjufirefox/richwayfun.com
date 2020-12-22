@@ -1454,6 +1454,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					elementView.reRender();
 				} );
 				return false;
+			} else if ( 'string' !== typeof value ) {
+				return value;
 			}
 			return beforeString + value + afterString;
 		},
@@ -1710,6 +1712,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			  this.addCssProperty( this.baseSelector + ' .fusion-form-input-with-icon > i', 'color',  this.formData['form_text_color'], true);
 			  // Input text color.
 			  this.addCssProperty(inputs, 'color',  this.formData['form_text_color']);
+
+			  // Select stroke color.
+			  this.addCssProperty( this.baseSelector + ' .fusion-select-wrapper .select-arrow path', 'stroke', this.formData['form_text_color'], true );
 			}
 
 			if ( !this.isDefault( 'form_label_color' ) ) {
@@ -2684,7 +2689,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					cursorAt: { top: 15, left: 15 },
 					iframeScroll: true,
 					containment: $body,
-					cancel: '.fusion-live-editable, .fusion-builder-live-child-element:not( [data-fusion-no-dragging] )',
+					cancel: '.fusion-live-editable, .fusion-builder-live-child-element:not( [data-fusion-no-dragging] ), .variations select',
 					helper: function() {
 						var $classes = FusionPageBuilderApp.DraggableHelpers.draggableClasses( cid );
 						return jQuery( '<div class="fusion-element-helper ' + $classes + '" data-cid="' + cid + '"><span class="' + fusionAllElements[ self.model.get( 'element_type' ) ].icon + '"></span></div>' );
@@ -3094,6 +3099,52 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				} else {
 					FusionApp.callback[ callbackFunction[ 'function' ] ]( cid, callbackFunction.content, callbackFunction.parent );
 				}
+			},
+
+			addCssProperty: function ( selectors, property, value, important ) {
+
+				if ( 'object' === typeof selectors ) {
+					selectors = Object.values( selectors );
+				}
+
+				if ( 'object' === typeof selectors ) {
+					selectors = selectors.join( ',' );
+				}
+
+				if ( 'object' !== typeof this.dynamic_css[ selectors ] ) {
+					this.dynamic_css[ selectors ] = {};
+				}
+
+				if ( 'undefined' !== typeof important && important ) {
+					value += ' !important';
+				}
+				if ( 'undefined' === typeof this.dynamic_css[ selectors ][ property ] || ( 'undefined' !== typeof important && important ) || ! this.dynamic_css[ selectors ][ property ].includes( 'important' ) ) {
+					this.dynamic_css[ selectors ][ property ] = value;
+				}
+			},
+
+			isDefault: function( param ) {
+				return this.values[ param ] === fusionAllElements[ this.model.get( 'element_type' ) ].defaults[ param ];
+			},
+
+			parseCSS: function () {
+				var css = '';
+
+				if ( 'object' !== typeof this.dynamic_css ) {
+					return '';
+				}
+
+				_.each( this.dynamic_css, function ( properties, selector ) {
+					if ( 'object' === typeof properties ) {
+						css += selector + '{';
+						_.each( properties, function ( value, property ) {
+							css += property + ':' + value + ';';
+						} );
+						css += '}';
+					}
+				} );
+
+				return css;
 			}
 
 		} );
@@ -7483,7 +7534,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			attr: function() {
 				var attr = {
 					'class': 'fusion-fullwidth fullwidth-box fusion-builder-row-live-' + this.model.get( 'cid' ),
-					'style': ''
+					'style': '',
+					'id': ''
 				},
 					self = this;
 
@@ -7634,6 +7686,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				// Custom CSS ID.
 				if ( '' !== this.values.id ) {
 					attr.id = this.values.id;
+				}
+
+				if ( '' !== this.values.menu_anchor ) {
+					attr.id += ' ' + this.values.menu_anchor;
 				}
 
 				// Sticky container.
@@ -13707,7 +13763,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				data: {
 					action: 'fusion_get_widget_form'
 				}
-			} ).success( function( response ) {
+			} ).done( function( response ) {
 				widgetDataLoaded 	= true;
 				widgetDataLoading 	= false;
 				widgetData			= response.data;
@@ -19216,7 +19272,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 ( function() {
 
-	jQuery( document ).ready( function() {
 		FusionPageBuilder.Wireframe = Backbone.Model.extend( {
 
 			initialize: function() {
@@ -19329,6 +19384,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 		} );
 
+	jQuery( document ).ready( function() {
 		// Column sortables
 		_.extend( FusionPageBuilder.BaseColumnView.prototype, {
 
@@ -21024,10 +21080,6 @@ _.mixin( {
 				label: 'LinkedIn',
 				color: '#0077b5'
 			},
-			mixer: {
-				label: 'Mixer',
-				color: '#1FBAED'
-			},
 			myspace: {
 				label: 'Myspace',
 				color: '#000000'
@@ -21233,7 +21285,6 @@ _.mixin( {
 				digg: 'digg',
 				blogger: 'blogger',
 				skype: 'skype',
-				mixer: 'mixer',
 				myspace: 'myspace',
 				deviantart: 'deviantart',
 				yahoo: 'yahoo',
@@ -21990,29 +22041,40 @@ _.mixin( {
 	 * Get font family styling.
 	 *
 	 * @since 2.1
+	 * @param {string} param_id - Param ID.
 	 * @param {Object} values - The values.
-	 * @return {String} - The generated styling.
+	 * @param {string} format - Format of returned value, string or object.
+	 * @return {mixed} - The generated styling.
 	 */
-	fusionGetFontStyle: function( param_id, values ) {
-		var style  = '',
-			weight = '';
+	fusionGetFontStyle: function( param_id, values, format = 'string' ) {
+		var style     = {},
+			style_str = '',
+			weight    = '';
 
 		if ( '' !== values[ 'fusion_font_family_' + param_id ] ) {
-			if ( values[ 'fusion_font_family_' + param_id ].includes( '\'' ) ) {
-				style += 'font-family:' + values[ 'fusion_font_family_' + param_id ] + ';';
+			if ( values[ 'fusion_font_family_' + param_id ].includes( '\'' ) || 'inherit' === values[ 'fusion_font_family_' + param_id ] ) {
+				style[ 'font-family' ] = values[ 'fusion_font_family_' + param_id ];
 			} else {
-				style += 'font-family:\'' + values[ 'fusion_font_family_' + param_id ] + '\';';
+				style[ 'font-family' ] = '\'' + values[ 'fusion_font_family_' + param_id ] + '\'';
 			}
 
 			if ( '' !== values[ 'fusion_font_variant_' + param_id ] ) {
 				weight = values[ 'fusion_font_variant_' + param_id ].replace( 'italic', '' );
 				if ( weight !== values[ 'fusion_font_variant_' + param_id ] ) {
-					style += 'font-style: italic;';
+					style[ 'font-style' ] = 'italic';
 				}
 				if ( '' !== weight ) {
-					style += 'font-weight:' + weight + ';';
+					style[ 'font-weight' ] = weight;
 				}
 			}
+		}
+
+		if ( 'string' === format ) {
+			jQuery.each( style, function( key, value ) {
+				style_str += key + ':' + value + ';';
+			} );
+
+			return style_str;
 		}
 
 		return style;
@@ -22874,6 +22936,29 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			};
 		},
 
+		fusion_cart_hide: function( name, value, args, view ) {
+
+			if ( 'string' !== typeof args.selector ) {
+				return {
+					render: true
+				};
+			}
+
+			if ( ! args.skip ) {
+				view.changeParam( name, value );
+			}
+
+			if ( 'no' === value ) {
+				view.$el.find( '.fusion-woo-cart' ).addClass( args.selector );
+			} else {
+				view.$el.find( '.fusion-woo-cart' ).removeClass( args.selector );
+			}
+
+			return {
+				render: false
+			};
+		},
+
 		fusion_ajax: function( name, value, modelData, args, cid, action, model, elementView ) {
 
 			var params   = jQuery.extend( true, {}, modelData.params ),
@@ -23221,6 +23306,35 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 			// If the ajax markup is still there from initial load then data-count is wrong.
 			view.$el.find( 'nav' ).attr( 'data-count', view.model.get( 'cid' ) );
+
+			return {
+				render: false
+			};
+		},
+
+		fusion_style_block: function( name, value, args, view ) {
+			var styleEl;
+			if ( ! args.skip ) {
+				view.changeParam( name, value );
+			}
+
+			const attrs = view.getTemplateAtts();
+
+			// Can't find base selector, markup likely wrong and needs updated.
+			if ( ! view.$el.find( view.baseSelector ).length ) {
+				return {
+					render: true
+				};
+			}
+
+			styleEl = view.$el.find( 'style' ).first();
+
+			// When element is added there will be no <style> tag, so we have to create it.
+			if ( 0 === jQuery( styleEl ).length ) {
+				styleEl = view.$el.find( '.fusion-builder-element-content' ).prepend( attrs.styles );
+			} else {
+				jQuery( styleEl ).replaceWith( attrs.styles );
+			}
 
 			return {
 				render: false
@@ -24525,7 +24639,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					{
 						generator_only: 'undefined' !== typeof element.generator_only ? true : element.generator_only,
 						templates: 'undefined' !== typeof element.templates ? element.templates : false,
-						components_per_template: 'undefined' !== typeof element.components_per_template ? element.components_per_template : false
+						components_per_template: 'undefined' !== typeof element.components_per_template ? element.components_per_template : false,
+						template_tooltip: 'undefined' !== typeof element.template_tooltip ? element.template_tooltip : false
 					}
 				)
 			);
@@ -25188,7 +25303,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					}
 
 					contentErrorMarkup.dialog( {
-						title: '<span class="icon type-warning"><i class="fusiona-exclamation" aria-hidden="true"></i></span>' + contentErrorTitle,
+						title: contentErrorTitle,
 						dialogClass: 'fusion-builder-dialog fusion-builder-error-dialog fusion-builder-settings-dialog',
 						autoOpen: true,
 						modal: true,
@@ -25216,6 +25331,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 									jQuery( this ).html( '<i class="fusiona-check" aria-hidden="true"></i> ' + fusionBuilderText.unknown_error_copied );
 								} );
 							}
+						},
+						create: function( event, ui ) {
+							// Add Title.
+							jQuery( this ).siblings().find( 'span.ui-dialog-title' ).prepend( '<span class="icon type-warning"><i class="fusiona-exclamation" aria-hidden="true"></i></span>' );
 						},
 						close: function() {} // eslint-disable-line no-empty-function
 					} );
@@ -25917,6 +26036,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					textType,
 					fontFamily,
 					fontVariant,
+					elementFonts,
 
 					// Check for shortcodes inside shortcode content
 					shortcodesInContent = 'undefined' !== typeof shortcodeContent && '' !== shortcodeContent && shortcodeContent.match( regExp ),
@@ -25978,6 +26098,20 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				if ( 'fusion_builder_blank_page' === shortcodeName ) {
 					elementSettings.type = 'fusion_builder_blank_page';
 				}
+
+				if ( 'fusion_tb_meta' === shortcodeName ) {
+					// Border sizes.
+					if ( ( 'undefined' === typeof shortcodeAttributes.named.border_top ||
+						'undefined' === typeof shortcodeAttributes.named.border_bottom ||
+						'undefined' === typeof shortcodeAttributes.named.border_left ||
+						'undefined' === typeof shortcodeAttributes.named.border_right ) &&
+						'string' === typeof shortcodeAttributes.named.border_size ) {
+						shortcodeAttributes.named.border_top    = shortcodeAttributes.named.border_size + 'px';
+						shortcodeAttributes.named.border_bottom = shortcodeAttributes.named.border_size + 'px';
+					}
+					delete shortcodeAttributes.named.border_size;
+				}
+
 				if ( _.isObject( shortcodeAttributes.named ) ) {
 					for ( key in shortcodeAttributes.named ) {
 
@@ -26195,22 +26329,39 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					} );
 				}
 
-				if ( true === FusionApp.layoutIsLoading && FusionPageBuilder.options.fusionTypographyField ) {
-					textType	= 'fusion_title' === elementSettings.element_type ? 'title' : 'text';
-					fontFamily	= elementSettings.params[ 'fusion_font_family_' + textType + '_font' ];
-					fontVariant	= elementSettings.params[ 'fusion_font_variant_' + textType + '_font' ];
+				if ( true === FusionPageBuilderApp.layoutIsLoading && 'object' === typeof FusionPageBuilder.options.fusionTypographyField && 'object' === typeof fusionAllElements[ elementSettings.element_type ] ) {
+					elementFonts = [];
 
-					if ( fontFamily ) {
+					// Find typography options and then get values.
+					_.each( fusionAllElements[ elementSettings.element_type ].params, function( optionParam ) {
+						if ( 'font_family' === optionParam.type ) {
+
+							// If we have a family value, add to array.
+							if ( 'string' === typeof elementSettings.params[ 'fusion_font_family_' + optionParam.param_name ] && '' !== elementSettings.params[ 'fusion_font_family_' + optionParam.param_name ] ) {
+								elementFonts.push( {
+									family: elementSettings.params[ 'fusion_font_family_' + optionParam.param_name ],
+									variant: elementSettings.params[ 'fusion_font_variant_' + optionParam.param_name ]
+								} );
+							}
+						}
+					} );
+
+					if ( ! _.isEmpty( elementFonts ) ) {
 						// If webfonts are not defined, init them and re-run this method.
 						if ( ! FusionApp.assets.webfonts ) {
 							jQuery.when( FusionApp.assets.getWebFonts() ).done( function() {
-								FusionPageBuilder.options.fusionTypographyField.webFontLoad( fontFamily, fontVariant, false );
+								_.each( elementFonts, function( font ) {
+									FusionPageBuilder.options.fusionTypographyField.webFontLoad( font.family, font.variant, false );
+								} );
 							} );
 							return this;
 						}
-						FusionPageBuilder.options.fusionTypographyField.webFontLoad( fontFamily, fontVariant, false );
+						_.each( elementFonts, function( font ) {
+							FusionPageBuilder.options.fusionTypographyField.webFontLoad( font.family, font.variant, false );
+						} );
 					}
 				}
+
 
 				if ( shortcodesInContent ) {
 
@@ -27968,6 +28119,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				// // Create attribute objects.
 				attributes.attr       = this.buildAttr( atts.values );
 
+				// Whether it has a dynamic data stream.
+				attributes.usingDynamic = 'undefined' !== typeof atts.values.multiple_upload;
+
 				return attributes;
 			},
 
@@ -28758,7 +28912,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Any extras that need passed on.
 				attributes.cid            			= this.model.get( 'cid' );
-				attributes.output         			= atts.values.element_content;
+				attributes.output         			= 'string' === typeof atts.values.element_content ? atts.values.element_content : '';
 				attributes.style_type     			= atts.values.style_type;
 				attributes.size           			= atts.values.size;
 				attributes.content_align  			= atts.values.content_align;
@@ -28810,7 +28964,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				// Make sure the title text is not wrapped with an unattributed p tag.
-				if ( 'undefined' !== typeof values.element_content ) {
+				if ( 'string' === typeof values.element_content ) {
 					values.element_content = values.element_content.trim();
 					values.element_content = values.element_content.replace( /(<p[^>]+?>|<p>|<\/p>)/img, '' );
 				}
@@ -29586,7 +29740,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		} );
 	} );
 }( jQuery ) );
-;/* global cssua */
+;/* global cssua, FusionApp */
 /* jshint -W107 */
 var FusionPageBuilder = FusionPageBuilder || {};
 
@@ -29638,15 +29792,218 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Validate values and extras.
 				this.validateValuesExtras( atts.values, atts.extras );
+				this.values = atts.values;
 
 				// Create attribute objects.
+				attributes.cid         = this.model.get( 'cid' );
+				this.counter = this.model.get( 'cid' );
 				attributes.shortcodeAttr      = this.buildShortcodeAttr( atts.values );
 				attributes.socialNetworksAttr = this.buildSocialNetworksAttr( atts.values );
 				attributes.taglineAttr        = this.buildTaglineAttr( atts.values );
 				attributes.icons              = this.buildIcons( atts.values );
 				attributes.tagline            = atts.values.tagline;
+				attributes.taglineVisibility  = atts.values.tagline_visibility;
+				attributes.styles             = this.buildStyleBlock();
 
 				return attributes;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  2.4
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function() {
+				var selector, large_layout, css, layout_medium, layout_small;
+				this.baseSelector = '.sharingbox-shortcode-icon-wrapper-' +  this.counter + '';
+				this.wrapper_selector = '.fusion-sharing-box-' +  this.counter;
+				this.selectors = [ this.baseSelector, this.wrapper_selector ];
+				this.dynamic_css = {};
+
+				if ( 'hide' ===  this.values.tagline_visibility ) {
+					this.values.layout = 'floated';
+					this.values.layout_medium = 'floated';
+					this.values.layout_small = 'floated';
+				}
+
+				if ( ! this.values.layout_medium ) {
+					this.values.layout_medium =  this.values.layout;
+				}
+
+				if ( ! this.values.layout_small ) {
+					this.values.layout_small =  this.values.layout;
+				}
+
+				if ( this.values.icon_taglines ) {
+					if ( 'before' ===  this.values.tagline_placement ) {
+						this.addCssProperty( this.wrapper_selector + ' .fusion-social-network-icon-tagline', 'margin-right', '0.5em', true );
+					} else {
+						this.addCssProperty( this.wrapper_selector + ' .fusion-social-network-icon-tagline', 'margin-left', '0.5em', true );
+					}
+
+					this.addCssProperty( this.baseSelector + ' span a', 'align-items', 'center', true );
+					this.addCssProperty( this.baseSelector + ' span a', 'display', 'flex', true );
+				}
+
+				if ( ! this.values.stacked_align_medium ) {
+					this.values.stacked_align_medium =  this.values.stacked_align;
+				}
+
+				if ( ! this.values.stacked_align_small ) {
+					this.values.stacked_align_small =  this.values.stacked_align;
+				}
+
+				if ( ! this.values.alignment_medium ) {
+					this.values.alignment_medium =  this.values.alignment;
+				}
+
+				if ( ! this.values.alignment_small ) {
+					this.values.alignment_small =  this.values.alignment;
+				}
+
+				if ( !this.isDefault( 'alignment' ) ) {
+					this.addCssProperty( [ this.baseSelector ], 'justify-content',  this.values.alignment, true );
+				}
+
+				selector = [ this.wrapper_selector ];
+				if ( 'floated' ===  this.values.layout ) {
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', '0', true );
+				} else {
+					this.addCssProperty( selector, 'align-items',  this.values.stacked_align, true );
+					this.addCssProperty( selector, 'justify-content', 'space-around', true );
+					this.addCssProperty( [ this.baseSelector ], 'width', '100%', true );
+				}
+
+				large_layout = ( 'stacked' ===  this.values.layout ) ? ' column' : 'row';
+				this.addCssProperty( selector, 'flex-direction', large_layout, true );
+				if ( !this.isDefault( 'border_color' ) ) {
+					this.addCssProperty( selector, 'border-color',  this.values.border_color, true );
+				}
+
+				if ( !this.isDefault( 'wrapper_padding_top' ) ) {
+					this.addCssProperty( selector, 'padding-top',  this.values.wrapper_padding_top, true );
+				}
+
+				if ( !this.isDefault( 'wrapper_padding_bottom' ) ) {
+					this.addCssProperty( selector, 'padding-bottom',  this.values.wrapper_padding_bottom, true );
+				}
+
+				if ( !this.isDefault( 'wrapper_padding_left' ) ) {
+					this.addCssProperty( selector, 'padding-left',  this.values.wrapper_padding_left, true );
+				}
+
+				if ( !this.isDefault( 'wrapper_padding_right' ) ) {
+					this.addCssProperty( selector, 'padding-right',  this.values.wrapper_padding_right, true );
+				}
+
+				if ( !this.isDefault( 'border_bottom' ) ) {
+					this.addCssProperty( selector, 'border-bottom-width',  this.values.border_bottom, true );
+				}
+
+				if ( !this.isDefault( 'border_top' ) ) {
+					this.addCssProperty( selector, 'border-top-width',  this.values.border_top, true );
+				}
+
+				if ( !this.isDefault( 'border_left' ) ) {
+					this.addCssProperty( selector, 'border-left-width',  this.values.border_left, true );
+				}
+
+				if ( !this.isDefault( 'border_right' ) ) {
+					this.addCssProperty( selector, 'border-right-width',  this.values.border_right, true );
+				}
+
+				selector = [ this.baseSelector + ' span:not(.sharingbox-shortcode-icon-separator)' ];
+				if ( !this.isDefault( 'padding_top' ) ) {
+					this.addCssProperty( selector, 'padding-top',  this.values.padding_top, true );
+				}
+
+				if ( !this.isDefault( 'padding_bottom' ) ) {
+					this.addCssProperty( selector, 'padding-bottom',  this.values.padding_bottom, true );
+				}
+
+				if ( !this.isDefault( 'padding_left' ) ) {
+					this.addCssProperty( selector, 'padding-left',  this.values.padding_left, true );
+				}
+
+				if ( !this.isDefault( 'padding_right' ) ) {
+					this.addCssProperty( selector, 'padding-right',  this.values.padding_right, true );
+				}
+
+				if ( !this.isDefault( 'icon_tagline_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' a', 'color',  this.values.icon_tagline_color, true );
+				}
+
+				if ( !this.isDefault( 'icon_tagline_color_hover' ) ) {
+					this.addCssProperty( this.baseSelector + ' a:hover', 'color',  this.values.icon_tagline_color_hover, true );
+				}
+
+				if ( !this.isDefault( 'tagline_text_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' a', 'font-size',  this.values.tagline_text_size, true );
+				}
+
+				if ( !this.isDefault( 'icon_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' a i', 'font-size',  this.values.icon_size, true );
+				}
+
+				selector = [ this.baseSelector + ' span.sharingbox-shortcode-icon-separator' ];
+				if ( !this.isDefault( 'separator_border_color' ) ) {
+					this.addCssProperty( selector, 'border-color',  this.values.separator_border_color, true );
+				}
+
+				if ( !this.isDefault( 'separator_border_sizes' ) ) {
+					this.values.separator_border_sizes = this.values.separator_border_sizes + 'px';
+					this.addCssProperty( selector, 'border-right-width',  this.values.separator_border_sizes, true );
+				}
+
+				css = this.parseCSS();
+				this.dynamic_css = {};
+				layout_medium = ( 'stacked' ===  this.values.layout_medium ) ? ' column' : 'row';
+				selector = [ this.wrapper_selector ];
+				this.addCssProperty( selector, 'flex-direction', layout_medium, true );
+				if ( 'floated' !==  this.values.layout_medium ) {
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', 'revert', true );
+					this.addCssProperty( [ this.baseSelector ], 'width', '100%', true );
+				} else {
+					this.addCssProperty( [ this.baseSelector ], 'width', 'auto', true );
+					this.addCssProperty( selector, 'align-items', 'center', true );
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', '0', true );
+					this.addCssProperty( this.wrapper_selector + ' h4', 'margin-right', '0.5em', true );
+				}
+
+				if ( this.values.alignment_medium ) {
+					this.addCssProperty( [ this.baseSelector ], 'justify-content',  this.values.alignment_medium, true );
+					if ( 'floated' !==  this.values.layout_medium ) {
+						this.addCssProperty( selector, 'align-items',  this.values.stacked_align_medium, true );
+					}
+
+				}
+
+				css += '@media only screen and (max-width:' + FusionApp.settings.visibility_medium + 'px){' + this.parseCSS() + ' }';
+				layout_small = ( 'stacked' ===  this.values.layout_small ) ? ' column' : 'row';
+				this.dynamic_css = {};
+				this.addCssProperty( selector, 'flex-direction', layout_small, true );
+				if ( 'floated' !==  this.values.layout_small ) {
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', 'revert', true );
+					this.addCssProperty( [ this.baseSelector ], 'width', '100%', true );
+				} else {
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', '0', true );
+					this.addCssProperty( selector, 'align-items', 'center', true );
+					this.addCssProperty( [ this.baseSelector ], 'width', 'auto', true );
+					this.addCssProperty( this.wrapper_selector + ' h4', 'margin-right', '0.5em', true );
+				}
+
+				if ( this.values.alignment_small ) {
+					this.addCssProperty( this.baseSelector, 'justify-content',  this.values.alignment_small, true );
+					if ( 'floated' !==  this.values.layout_small ) {
+						this.addCssProperty( selector, 'align-items',  this.values.stacked_align_small, true );
+					}
+
+				}
+
+				css += '@media only screen and (max-width:' + FusionApp.settings.visibility_small + 'px){' + this.parseCSS() + ' }';
+				return ( css ) ? '<style type="text/css">' + css + '</style>' : '';
 			},
 
 			/**
@@ -29671,7 +30028,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 */
 			buildShortcodeAttr: function( values ) {
 				var sharingboxShortcode = _.fusionVisibilityAtts( values.hide_on_mobile, {
-					class: 'share-box fusion-sharing-box'
+					class: 'fusion-sharing-box fusion-sharing-box-' + this.model.get( 'cid' ),
+					style: ''
 				} );
 
 				sharingboxShortcode[ 'class' ] += _.fusionGetStickyClass( values.sticky_display );
@@ -29696,6 +30054,22 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					sharingboxShortcode[ 'class' ] += ' ' + values.id;
 				}
 
+				if ( '' !== values.margin_top ) {
+					sharingboxShortcode.style += 'margin-top: ' + values.margin_top + ';';
+				}
+
+				if ( '' !== values.margin_bottom ) {
+					sharingboxShortcode.style += 'margin-bottom: ' + values.margin_bottom + ';';
+				}
+
+				if ( '' !== values.margin_left ) {
+					sharingboxShortcode.style += 'margin-left: ' + values.margin_left + ';';
+				}
+
+				if ( '' !== values.margin_right ) {
+					sharingboxShortcode.style += 'margin-right: ' + values.margin_right + ';';
+				}
+
 				sharingboxShortcode[ 'data-title' ]       = values.title;
 				sharingboxShortcode[ 'data-description' ] = values.description;
 				sharingboxShortcode[ 'data-link' ]        = values.link;
@@ -29713,15 +30087,15 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 */
 			buildSocialNetworksAttr: function( values ) {
 				var sharingboxShortcodeSocialNetworks = {
-					class: 'fusion-social-networks'
+					class: 'fusion-social-networks sharingbox-shortcode-icon-wrapper sharingbox-shortcode-icon-wrapper-' + this.model.get( 'cid' )
 				};
 
 				if ( 'yes' === values.icons_boxed ) {
 					sharingboxShortcodeSocialNetworks[ 'class' ] += ' boxed-icons';
 				}
 
-				if ( '' === values.tagline ) {
-					sharingboxShortcodeSocialNetworks.style = 'text-align: inherit;';
+				if ( '' !== values.alignment ) {
+					sharingboxShortcodeSocialNetworks.style = 'text-align: ' + values.alignment + ';';
 				}
 
 				return sharingboxShortcodeSocialNetworks;
@@ -29784,6 +30158,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				var icons            = '',
 					iconColors       = values.icon_colors,
 					boxColors        = values.box_colors,
+					itemTagline	 = values.icon_taglines,
 					useBrandColors   = false,
 					numOfIconColors,
 					numOfBoxColors,
@@ -29796,10 +30171,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					image,
 					socialLink,
 					sharingboxShortcodeIcon,
+					sharingboxShortcodeIconLink,
 					iconOptions,
 					socialIconBoxedColors,
 					network,
-					tooltip;
+					tooltip,
+					numOfTaglines;
 
 				if ( 'brand' === values.color_type ) {
 					useBrandColors = true;
@@ -29815,10 +30192,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				iconColors = iconColors.split( '|' );
 				boxColors  = boxColors.split( '|' );
+				itemTagline = itemTagline.split( '|' );
 
 				numOfIconColors     = iconColors.length;
 				numOfBoxColors      = boxColors.length;
-				socialNetworks      = values.social_networks.split( '|' );
+				numOfTaglines      = itemTagline.length;
+				socialNetworks = values.social_share_links;
+
+				if ( 'string' === typeof socialNetworks ) {
+					socialNetworks = socialNetworks.split( ',' );
+				}
 				socialNetworksCount = socialNetworks.length;
 
 				for ( i = 0; i < socialNetworksCount; i++ ) {
@@ -29845,7 +30228,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 							iconOptions.box_color = boxColors[ 0 ];
 						}
 					}
-
+					if ( 1 === numOfTaglines ) {
+						iconOptions.icon_tagline =  itemTagline[ 0 ];
+					} else {
+						iconOptions.icon_tagline = i < itemTagline.length ? itemTagline[ i ] : '';
+					}
+					iconOptions.social_network = 'email' === iconOptions.social_network ? 'mail' : iconOptions.social_network;
 					// sharingboxShortcodeIcon attributes
 					description = values.description;
 					link        = values.link;
@@ -29855,6 +30243,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					sharingboxShortcodeIcon = {
 						class: 'fusion-social-network-icon fusion-tooltip fusion-' + iconOptions.social_network + ' fusion-icon-' + iconOptions.social_network
 					};
+					sharingboxShortcodeIconLink = {};
 
 					socialLink = '';
 					switch ( iconOptions.social_network ) {
@@ -29887,11 +30276,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						break;
 					}
 
-					sharingboxShortcodeIcon.href   = socialLink;
-					sharingboxShortcodeIcon.target = ( values.linktarget && 'mail' !== iconOptions.social_network ) ? '_blank' : '_self';
+					sharingboxShortcodeIconLink.href   = socialLink;
+					sharingboxShortcodeIconLink.target = ( values.linktarget && 'mail' !== iconOptions.social_network ) ? '_blank' : '_self';
 
 					if ( '_blank' === sharingboxShortcodeIcon.target ) {
-						sharingboxShortcodeIcon.rel = 'noopener noreferrer';
+						sharingboxShortcodeIconLink.rel = 'noopener noreferrer';
 					}
 
 					sharingboxShortcodeIcon.style = ( iconOptions.icon_color ) ? 'color:' + iconOptions.icon_color + ';' : '';
@@ -29907,17 +30296,27 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						sharingboxShortcodeIcon.style += 'border-radius:' + values.icons_boxed_radius + ';';
 					}
 
-					sharingboxShortcodeIcon[ 'data-placement' ] = values.tooltip_placement;
+					sharingboxShortcodeIconLink[ 'data-placement' ] = values.tooltip_placement;
 					tooltip = iconOptions.social_network;
 
-					sharingboxShortcodeIcon[ 'data-title' ] = _.fusionUcFirst( tooltip );
-					sharingboxShortcodeIcon.title         = _.fusionUcFirst( tooltip );
-					sharingboxShortcodeIcon[ 'aria-label' ] = _.fusionUcFirst( tooltip );
+					sharingboxShortcodeIconLink[ 'data-title' ] = _.fusionUcFirst( tooltip );
+					sharingboxShortcodeIconLink.title         = _.fusionUcFirst( tooltip );
+					sharingboxShortcodeIconLink[ 'aria-label' ] = _.fusionUcFirst( tooltip );
+
 
 					if ( 'none' !== values.tooltip_placement ) {
-						sharingboxShortcodeIcon[ 'data-toggle' ] = 'tooltip';
+						sharingboxShortcodeIconLink[ 'data-toggle' ] = 'tooltip';
 					}
-					icons += '<a ' + _.fusionGetAttributes( sharingboxShortcodeIcon ) + '></a>';
+					icons += '<span><a ' + _.fusionGetAttributes( sharingboxShortcodeIconLink ) + '>';
+					icons += 'before' === values.tagline_placement && '' !== iconOptions.icon_tagline ? '<div class="fusion-social-network-icon-tagline">' + iconOptions.icon_tagline + '</div>' : '';
+					icons += '<i  ' + _.fusionGetAttributes( sharingboxShortcodeIcon ) + ' aria-hidden="true"></i>';
+					icons += 'after' === values.tagline_placement && '' !== iconOptions.icon_tagline ? '<div class="fusion-social-network-icon-tagline">' + iconOptions.icon_tagline + '</div>' : '';
+					icons += '</a></span>';
+
+					if ( 0 < values.separator_border_sizes && i < socialNetworks.length - 1 ) {
+						icons += '<span class="sharingbox-shortcode-icon-separator"></span>';
+					}
+
 				}
 
 				return icons;
@@ -29935,6 +30334,14 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 		// Section separator view.
 		FusionPageBuilder.fusion_section_separator = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * BG Image Separator divider types.
+			 *
+			 * @since 3.2
+			 * @return {Object}
+			 */
+			bgImageSeparators: [ 'grunge', 'music', 'waves_brush', 'paper', 'squares', 'circles', 'paint', 'grass' ],
 
 			/**
 			 * Runs after view DOM is patched.
@@ -29978,6 +30385,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				attributes.attrCandyArrow   = this.buildCandyArrowAtts( atts.values );
 				attributes.attrCandy        = this.buildCandyAtts( atts.values );
 				attributes.attrSVG          = this.buildSVGAtts( atts.values );
+				attributes.attrSVGBGImage   = this.buildSVGBGImageAtts( atts.values );
 				attributes.attrButton       = this.buildButtonAtts( atts.values );
 				attributes.attrRoundedSplit = this.buildRoundedSplitAtts( atts.values );
 				attributes.values           = atts.values;
@@ -30023,6 +30431,22 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						style: ''
 					} );
 
+				if ( '' !== values.margin_top ) {
+					attr.style += 'margin-top:' + _.fusionGetValueWithUnit( values.margin_top ) + ';';
+				}
+
+				if ( '' !== values.margin_right ) {
+					attr.style += 'margin-right:' + _.fusionGetValueWithUnit( values.margin_right ) + ';';
+				}
+
+				if ( '' !== values.margin_bottom ) {
+					attr.style += 'margin-bottom:' + _.fusionGetValueWithUnit( values.margin_bottom ) + ';';
+				}
+
+				if ( '' !== values.margin_left ) {
+					attr.style += 'margin-left:' + _.fusionGetValueWithUnit( values.margin_left ) + ';';
+				}
+
 				if ( 'rounded-split' === values.divider_type ) {
 					attr[ 'class' ] += ' rounded-split-separator';
 				}
@@ -30058,7 +30482,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					paddingValueLeft      = '',
 					paddingValueRight     = '',
 					columnOuterWidth      = jQuery( parentColumnView.$el ).width(),
-					columnWidth           = jQuery( parentColumnView.$el ).children( '.fusion-column-wrapper' ).width();
+					columnWidth           = jQuery( parentColumnView.$el ).children( '.fusion-column-wrapper' ).width(),
+					dividerHeightArr      = [],
+					selectors;
 
 					if ( 'triangle' === values.divider_type ) {
 						if ( '' !== values.bordercolor ) {
@@ -30167,6 +30593,97 @@ var FusionPageBuilder = FusionPageBuilder || {};
 								} );
 							}
 						}
+
+						// Check for custom height.
+						this.baseSelector = '.fusion-section-separator.fusion-section-separator-' + this.model.get( 'cid' );
+						_.each( [ 'large', 'medium', 'small' ], function( responsiveSize ) {
+							var key = 'divider_height' + ( 'large' === responsiveSize ? '' : '_' + responsiveSize ),
+								media;
+
+							// Skip for specific type.
+							if ( 'triangle' === values.divider_type || 'rounded-split' === values.divider_type ) {
+								return;
+							}
+
+							// Check for flex.
+							if ( ! self.flexDisplay() && 'large' !== responsiveSize ) {
+								return;
+							}
+
+							// Check for empty value.
+							if ( '' === values[ key ] ) {
+								return;
+							}
+
+							dividerHeightArr[ key ] = values[ key ];
+							self.dynamic_css  = {};
+							media = 'large' === responsiveSize ? '' : '@media only screen and (max-width:' + extras[ 'visibility_' + responsiveSize ] + 'px)';
+
+							// Generate style rules.
+							selectors = [
+								self.baseSelector + ' .fusion-section-separator-svg svg',
+								self.baseSelector + ' .fusion-section-separator-svg-bg'
+							];
+							self.addCssProperty( selectors, 'height', values[ key ] );
+							selectors = [ self.baseSelector + ' .fusion-section-separator-spacer-height' ];
+							self.addCssProperty( selectors, 'height', values[ key ] + ' !important' );
+							self.addCssProperty( selectors, 'padding-top', 'inherit !important' );
+
+							if ( 'large' === responsiveSize ) {
+								values.additional_styles += self.parseCSS();
+							} else {
+								values.additional_styles += media + '{' + self.parseCSS() + '}';
+							}
+
+						} );
+
+						// Background Repeat.
+						_.each( [ 'large', 'medium', 'small' ], function( responsiveSize ) {
+							var key = 'divider_repeat' + ( 'large' === responsiveSize ? '' : '_' + responsiveSize ),
+								keyDividerH = 'divider_height' + ( 'large' === responsiveSize ? '' : '_' + responsiveSize ),
+								media,
+								height,
+								value;
+
+							// Only allow for SVG Background type.
+							if ( -1 === jQuery.inArray( values.divider_type, self.bgImageSeparators ) ) {
+								return;
+							}
+
+							// Check for flex.
+							if ( ! self.flexDisplay() && 'large' !== responsiveSize ) {
+								return;
+							}
+
+							// Check for empty value.
+							if ( '' === values[ key ] ) {
+								return;
+							}
+
+							self.dynamic_css  = {};
+							media = 'large' === responsiveSize ? '' : '@media only screen and (max-width:' + extras[ 'visibility_' + responsiveSize ] + 'px)';
+
+							height = '' !== values[ keyDividerH ] ? values[ keyDividerH ] : self.getDividerHeightResponsive( keyDividerH, dividerHeightArr );
+							height = '' === values[ keyDividerH ] && 1 < values[ key ] ? ( parseInt( height ) / values[ key ] ) + 'px' : height; // Aspect ratio height.
+
+							selectors = [ self.baseSelector + ' .fusion-section-separator-svg-bg' ];
+
+							if ( _.contains( height, '%' ) ) {
+								value = parseFloat( 100 / values[ key ] ) + '% 100%';
+							} else {
+								height = 0 < parseInt( height ) ? height : '100%';
+								value  = parseFloat( 100 / values[ key ] ) + '% ' + height;
+							}
+							self.addCssProperty( selectors, 'background-size', value );
+
+							if ( 'large' === responsiveSize ) {
+								values.additional_styles += self.parseCSS();
+							} else {
+								values.additional_styles += media + '{' + self.parseCSS() + '}';
+							}
+
+						} );
+
 					}
 
 				return attr;
@@ -30211,7 +30728,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				var attrSpacerHeight = {
 						class: 'fusion-section-separator-spacer-height'
 					},
-					hundredPxSeparators = [ 'slant', 'bigtriangle', 'curved', 'big-half-circle', 'clouds' ];
+					hundredPxSeparators = [ 'slant', 'bigtriangle', 'curved', 'big-half-circle', 'clouds' ],
+					height;
 
 				if ( -1 !== jQuery.inArray( values.divider_type, hundredPxSeparators ) ) {
 					attrSpacerHeight.style = 'height:99px;';
@@ -30235,6 +30753,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attrSpacerHeight.style = 'padding-top:' + ( 216 / 1024 * 100 ) + '%;';
 				} else if ( 'waves' === values.divider_type ) {
 					attrSpacerHeight.style = 'padding-top:' + ( 162 / 1024 * 100 ) + '%;';
+				} else if ( -1 !== jQuery.inArray( values.divider_type, this.bgImageSeparators ) ) {
+					height = '' === values.divider_height && 1 < values.divider_repeat ? ( parseInt( this._getDefaultSepHeight()[ values.divider_type ] ) / values.divider_repeat ) + 'px' : this._getDefaultSepHeight()[ values.divider_type ]; // Aspect ratio height.
+					attrSpacerHeight.style = 'height:' + height + ';';
 				}
 				return attrSpacerHeight;
 
@@ -30244,8 +30765,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * Builds attributes.
 			 *
 			 * @since 2.0
-			 * @param {Object} v//alues - The values.
-			 * @return {Object}//
+			 * @param {Object} values - The values.
+			 * @return {Object}
 			 */
 			buildCandyAtts: function( values ) {
 				var attrCandy = {
@@ -30376,6 +30897,76 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				return attrRoundedSplit;
+			},
+
+			/**
+			 * Builds SVG BG Image attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} values - The values.
+			 * @return {Object}
+			 */
+			buildSVGBGImageAtts: function( values ) {
+				var attrSVG = {
+					class: 'fusion-' + values.divider_type + '-candy-sep fusion-section-separator-svg-bg',
+					style: ''
+				},
+				height = this._getDefaultSepHeight()[ values.divider_type ] ? this._getDefaultSepHeight()[ values.divider_type ] : '100px',
+				transform = [];
+
+				if ( '' === values.divider_height ) {
+					if ( 1 < values.divider_repeat ) {
+						height = ( parseInt( height ) / values.divider_repeat ) + 'px';
+					}
+					attrSVG.style += 'height:' + height + ';';
+				}
+
+				if ( 'right' === values.divider_position ) {
+					transform.push( 'rotateY(180deg)' );
+				} else {
+					transform.push( 'rotateY(0)' );
+				}
+
+				if ( 'bottom' === values.divider_candy ) {
+					transform.push( 'rotateX(180deg)' );
+				} else {
+					transform.push( 'rotateX(0)' );
+				}
+
+				if ( transform.length ) {
+					attrSVG.style += 'transform: ' + transform.join( ' ' ) + ' ;';
+				}
+
+
+				return attrSVG;
+			},
+
+			/**
+			 * Get default height of separators.
+			 *
+			 * @since 3.2
+			 * @return {Object}
+			 */
+			_getDefaultSepHeight: function() {
+				return {
+					grunge: '43px',
+					music: '297px',
+					waves_brush: '124px',
+					paper: '102px',
+					circles: '164px',
+					squares: '140px',
+					paint: '80px',
+					grass: '195px'
+				};
+			},
+
+			getDividerHeightResponsive: function( key, hash ) {
+				var keys = hash.keys();
+				var found_index = _.contains( keys, key );
+				if ( false === found_index || 0 === found_index ) {
+					return '';
+				}
+				return keys[ found_index - 1 ];
 			}
 
 		} );
@@ -33596,8 +34187,17 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 			buildAttr: function( values ) {
 				var attr = {
-						'class': 'fusion-lottie-animation'
-					};
+						'class': 'fusion-lottie-animation',
+						'style': ''
+					},
+					alignClasses = {
+						'center': 'mx-auto',
+						'left': 'mr-auto',
+						'right': 'ml-auto'
+					},
+					alignLarge,
+					alignMedium,
+					alignSmall;
 
 				if ( '' !== values.json ) {
 					attr[ 'data-path' ] = values.json;
@@ -33627,6 +34227,25 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						attr.rel = 'noopener noreferrer';
 					}
 				}
+
+				if ( this.isFlex ) {
+					alignLarge  = values.align && 'none' !== values.align ? values.align : false,
+					alignMedium = values.align_medium && 'none' !== values.align_medium ? values.align_medium : false,
+					alignSmall  = values.align_small && 'none' !== values.align_small ? values.align_small : false;
+
+					if ( alignLarge ) {
+						attr[ 'class' ] += ' lg-' + alignClasses[ alignLarge ];
+					}
+
+					if ( alignMedium ) {
+						attr[ 'class' ] += ' md-' + alignClasses[ alignMedium ];
+					}
+
+					if ( alignSmall ) {
+						attr[ 'class' ] += ' sm-' + alignClasses[ alignSmall ];
+					}
+				}
+
 				return attr;
 			},
 
@@ -33643,10 +34262,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						style: '',
 						'class': 'fusion-lottie fusion-lottie-' + this.model.get( 'cid' ),
 						'data-id': this.model.get( 'cid' )
-					},
-					alignLarge,
-					alignMedium,
-					alignSmall;
+					};
 
 				// Hide on mobile.
 				attr = _.fusionVisibilityAtts( values.hide_on_mobile, attr );
@@ -33672,24 +34288,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 				if ( '' !== values.margin_left ) {
 					attr.style += 'margin-left:' + _.fusionValidateAttrValue( values.margin_left, 'px' ) + ';';
-				}
-
-				if ( this.isFlex ) {
-					alignLarge  = values.align && 'none' !== values.align ? values.align : false,
-					alignMedium = values.align_medium && 'none' !== values.align_medium ? values.align_medium : false,
-					alignSmall  = values.align_small && 'none' !== values.align_small ? values.align_small : false;
-
-					if ( alignLarge ) {
-						attr[ 'class' ] += ' lg-text-align-' + alignLarge;
-					}
-
-					if ( alignMedium ) {
-						attr[ 'class' ] += ' md-text-align-' + alignMedium;
-					}
-
-					if ( alignSmall ) {
-						attr[ 'class' ] += ' sm-text-align-' + alignSmall;
-					}
 				}
 
 				return attr;
@@ -33756,7 +34354,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			},
 
 			getStyles: function () {
-				var selectors, gap_value, gap_unit, half_gap, value, unit, half;
+				var selectors, gap_value, gap_unit, half_gap, value, unit, half,
+				menuStyles = {},
+				self       = this;;
 
 				this.baseSelector = '.fusion-menu-element-wrapper[data-count="' +  this.model.get('cid') + '"]';
 				this.dynamic_css  = {};
@@ -33786,24 +34386,20 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				  this.addCssProperty( this.baseSelector + ' .fusion-menu-element-list', 'align-items',  this.values['align_items']);
 				}
 
-				if (!this.isDefault('fusion_font_family_typography')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list', this.baseSelector + ' > .avada-menu-mobile-menu-trigger', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-submenu .fusion-megamenu-title' ];
-				  this.addCssProperty(selectors, 'font-family',  this.values['fusion_font_family_typography']);
-				}
+				selectors  = [ this.baseSelector + ' .fusion-menu-element-list', this.baseSelector + ' > .avada-menu-mobile-menu-trigger', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-submenu .fusion-megamenu-title' ];
+				menuStyles = _.fusionGetFontStyle( 'typography', this.values, 'object' );
+				jQuery.each( menuStyles, function( rule, value ) {
+					self.addCssProperty( selectors, rule, value );
+				} );
 
 				this.addCssProperty([ this.baseSelector + ' [class*="fusion-icon-"]', this.baseSelector + ' [class^="fusion-icon-"]' ], 'font-family',  this.values['fusion_font_family_typography'], true);
-				// Font Weight.
-				if (!this.isDefault('fusion_font_variant_typography')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-submenu .fusion-megamenu-title' ];
-				  this.addCssProperty(selectors, 'font-weight',  this.values['fusion_font_variant_typography']);
-				}
 
 				if (!this.isDefault('min_height')) {
 				  this.addCssProperty( this.baseSelector + ' .fusion-menu-element-list', 'min-height',  this.values['min_height']);
 				}
 
 				if (!this.isDefault('sticky_min_height')) {
-				  this.addCssProperty('.fusion-sticky-container.fusion-sticky-transition ' +  this.baseSelector + ' .fusion-menu-element-list', 'min-height',  this.values['sticky_min_height']);
+				  this.addCssProperty('.fusion-body .fusion-sticky-container.fusion-sticky-transition ' +  this.base_selector_no_body + ' .fusion-menu-element-list', 'min-height',  this.values['sticky_min_height']);
 				}
 
 				if (!this.isDefault('text_transform')) {
@@ -33945,12 +34541,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if (!this.isDefault('items_padding_right')) {
 				  if (jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method']) {
-				    this.addCssProperty(['.ltr ' +  this.baseSelector + '.expand-method-click li.menu-item-has-children:not(.fusion-menu-item-button) > .fusion-open-nav-submenu' ], 'padding-right',  this.values['items_padding_right']);
+				    this.addCssProperty(['.ltr' +  this.baseSelector + '.expand-method-click li.menu-item-has-children:not(.fusion-menu-item-button) > .fusion-open-nav-submenu' ], 'padding-right',  this.values['items_padding_right']);
 				  }
 
 				  selectors = [ this.baseSelector + ':not(.collapse-enabled) .fusion-menu-form-inline', this.baseSelector + ':not(.collapse-enabled) .custom-menu-search-overlay ~ .fusion-overlay-search', this.baseSelector + ':not(.collapse-enabled) .fusion-menu-element-list .custom-menu-search-overlay .fusion-overlay-search', this.baseSelector + ':not(.collapse-enabled) .fusion-menu-element-list .fusion-menu-form-inline' ];
 				  if (jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method'] && 'column' ===  this.values['direction']) {
-				    selectors.push('.ltr ' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children > a');
+				    selectors.push('.ltr' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children > a');
 				  }
 
 				  this.addCssProperty(selectors, 'padding-right',  this.values['items_padding_right']);
@@ -33959,13 +34555,13 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if (!this.isDefault('items_padding_left')) {
 				  if (jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method']) {
-				    selectors = ['.rtl ' +  this.baseSelector + '.expand-method-click li.menu-item-has-children:not(.fusion-menu-item-button) > .fusion-open-nav-submenu' ];
+				    selectors = ['.rtl' +  this.baseSelector + '.expand-method-click li.menu-item-has-children:not(.fusion-menu-item-button) > .fusion-open-nav-submenu' ];
 				    this.addCssProperty(selectors, 'padding-left',  this.values['items_padding_left']);
 				  }
 
 				  selectors = [ this.baseSelector + ':not(.collapse-enabled) .fusion-menu-form-inline', this.baseSelector + ':not(.collapse-enabled) .custom-menu-search-overlay ~ .fusion-overlay-search', this.baseSelector + ':not(.collapse-enabled) .fusion-menu-element-list .custom-menu-search-overlay .fusion-overlay-search', this.baseSelector + ':not(.collapse-enabled) .fusion-menu-element-list .fusion-menu-form-inline' ];
 				  if (jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method'] && 'column' ===  this.values['direction']) {
-				    selectors.push('.ltr ' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children > a');
+				    selectors.push('.ltr' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children > a');
 				  }
 
 				  this.addCssProperty(selectors, 'padding-left',  this.values['items_padding_left']);
@@ -34614,15 +35210,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				}
 
-				if (!this.isDefault('fusion_font_family_submenu_typography')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list .sub-menu > li', this.baseSelector + ' .fusion-menu-element-list .sub-menu li a' ];
-				  this.addCssProperty(selectors, 'font-family',  this.values['fusion_font_family_submenu_typography']);
-				}
-
-				if (!this.isDefault('fusion_font_variant_submenu_typography')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list .sub-menu > li', this.baseSelector + ' .fusion-menu-element-list .sub-menu li a' ];
-				  this.addCssProperty(selectors, 'font-weight',  this.values['fusion_font_variant_submenu_typography']);
-				}
+				selectors = [ this.baseSelector + ' .fusion-menu-element-list .sub-menu > li', this.baseSelector + ' .fusion-menu-element-list .sub-menu li a' ];
+				menuStyles = _.fusionGetFontStyle( 'submenu_typography', this.values, 'object' );
+				jQuery.each( menuStyles, function( rule, value ) {
+					self.addCssProperty( selectors, rule, value );
+				} );
 
 				if (!this.isDefault('submenu_bg')) {
 				  selectors = [ this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-holder', this.baseSelector + ' .sub-menu .fusion-menu-cart', this.baseSelector + ' .custom-menu-search-dropdown .fusion-menu-searchform-dropdown .fusion-search-form-content', this.baseSelector + ' .avada-menu-login-box .avada-custom-menu-item-contents' ];
@@ -34716,7 +35308,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				if (!this.isDefault('submenu_active_bg')) {
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):hover', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):focus', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button).expanded', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within > .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within > .fusion-background-highlight', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover' ];
+				  selectors = [ this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):hover', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):focus', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button):focus-within', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu):not(.fusion-menu-searchform-dropdown) > li:not(.fusion-menu-item-button).expanded', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current_page_item:not(.fusion-menu-item-button)', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within > .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within > .fusion-background-highlight', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover' ];
 				  this.addCssProperty(selectors, 'background-color',  this.values['submenu_active_bg']);
 				  if ('column' ===  this.values['direction']) {
 				    selectors = [ ];
@@ -34773,7 +35365,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if (!this.isDefault('submenu_active_color')) {
 				  // Important ones.
-				  selectors = [ this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within > .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within .fusion-open-nav-submenu', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover .fusion-open-nav-submenu', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within > .fusion-background-highlight', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover' ];
+				  selectors = [ this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:not(.fusion-menu-item-button).current-menu-item > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > a', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:not(.fusion-menu-item-button).current-menu-item > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > a .fusion-button', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li:focus-within > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.expanded > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-item > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-ancestor > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-menu-element-list ul:not(.fusion-megamenu) > li.current-menu-parent > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a.hover > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:active > .fusion-open-nav-submenu', this.baseSelector + ' .fusion-megamenu-wrapper .fusion-megamenu-submenu > a:focus-within > .fusion-open-nav-submenu', this.baseSelector + '.submenu-mode-dropdown li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within .fusion-open-nav-submenu', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover .fusion-open-nav-submenu', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children:focus-within > .fusion-background-highlight', this.baseSelector + ' li ul.fusion-megamenu li.menu-item-has-children .sub-menu li.menu-item-has-children .fusion-background-highlight:hover' ];
 				  if (true) {
 				    selectors.push( this.baseSelector + ' .fusion-menu-cart-checkout:hover .fusion-menu-cart-link a');
 				    selectors.push( this.baseSelector + ' .fusion-menu-cart-checkout:hover .fusion-menu-cart-checkout-link a');
@@ -34817,19 +35409,23 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				  }
 
 				  if ('column' ===  this.values['direction'] && jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method']) {
-				    selectors.push('.ltr ' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children li a');
+				    selectors.push('.ltr' +  this.baseSelector + '.direction-column.expand-method-click.expand-left .menu-item-has-children li a');
 				  }
 
 				  if (true) {
-				    selectors.push('.rtl ' +  this.baseSelector + ' .fusion-menu-cart-link');
-				    selectors.push('.ltr ' +  this.baseSelector + ' .fusion-menu-cart-checkout-link');
+				    selectors.push( this.baseSelector + ' .fusion-menu-cart-checkout');
 				  }
 
 				  if ('flyout' ===  this.values['submenu_mode']) {
-				    selectors.push('.ltr ' +  this.baseSelector + '.submenu-mode-flyout:not(.collapse-enabled) .sub-menu li:not(.fusion-menu-item-button) > a');
+				    selectors.push('.ltr' +  this.baseSelector + '.submenu-mode-flyout:not(.collapse-enabled) .sub-menu li:not(.fusion-menu-item-button) > a');
 				  }
 
 				  this.addCssProperty(selectors, 'padding-right',  this.values['submenu_items_padding_right']);
+				  if (true) {
+				    this.addCssProperty('.rtl' +  this.baseSelector + ' .fusion-menu-cart-link', 'padding-right', '0');
+				    this.addCssProperty('.ltr' +  this.baseSelector + ' .fusion-menu-cart-checkout-link', 'padding-right', '0');
+				  }
+
 				}
 
 				if (!this.isDefault('submenu_items_padding_bottom')) {
@@ -34848,19 +35444,23 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				  }
 
 				  if ('column' ===  this.values['direction'] && jQuery( 'body' ).hasClass( 'rtl' ) && 'click' ===  this.values['expand_method']) {
-				    selectors.push('.rtl ' +  this.baseSelector + '.direction-column.expand-method-click.expand-right .menu-item-has-children li a');
+				    selectors.push('.rtl' +  this.baseSelector + '.direction-column.expand-method-click.expand-right .menu-item-has-children li a');
 				  }
 
 				  if (true) {
-				    selectors.push('.rtl ' +  this.baseSelector + ' .fusion-menu-cart-checkout-link');
-				    selectors.push('.ltr ' +  this.baseSelector + ' .fusion-menu-cart-link');
+				    selectors.push( this.baseSelector + ' .fusion-menu-cart-checkout');
 				  }
 
 				  if ('flyout' ===  this.values['submenu_mode']) {
-				    selectors.push('.rtl ' +  this.baseSelector + '.submenu-mode-flyout:not(.collapse-enabled) .sub-menu li:not(.fusion-menu-item-button) > a');
+				    selectors.push('.rtl' +  this.baseSelector + '.submenu-mode-flyout:not(.collapse-enabled) .sub-menu li:not(.fusion-menu-item-button) > a');
 				  }
 
 				  this.addCssProperty(selectors, 'padding-left',  this.values['submenu_items_padding_left']);
+				  if (true) {
+				    this.addCssProperty('.rtl' +  this.baseSelector + ' .fusion-menu-cart-checkout-link', 'padding-left', '0');
+				    this.addCssProperty('.ltr' +  this.baseSelector + ' .fusion-menu-cart-link', 'padding-left', '0');
+				  }
+
 				}
 
 				if ( (!this.isDefault('submenu_items_padding_left') || !this.isDefault('submenu_items_padding_right')) && 'click' ===  this.values['expand_method']) {
@@ -34918,11 +35518,13 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				this.addCssProperty([ this.baseSelector + ' .custom-menu-search-dropdown:hover .fusion-main-menu-icon', this.baseSelector + ' .custom-menu-search-overlay:hover .fusion-menu-icon-search.trigger-overlay', this.baseSelector + ' .custom-menu-search-overlay:hover ~ .fusion-overlay-search' ], 'color',  this.values['icons_hover_color'], true);
 				// Thumbnail size.
 				if (!this.isDefault('thumbnail_size_width')) {
-				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) a > .fusion-megamenu-image > img', 'width',  this.values['thumbnail_size_width']);
+				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) .fusion-megamenu-title .fusion-megamenu-image > img', 'width',  this.values['thumbnail_size_width']);
+				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) .fusion-megamenu-title .fusion-megamenu-thumbnail > img', 'width',  this.values['thumbnail_size_width']);
 				}
 
 				if (!this.isDefault('thumbnail_size_height')) {
-				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) a > .fusion-megamenu-image > img', 'height',  this.values['thumbnail_size_height']);
+				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) .fusion-megamenu-title .fusion-megamenu-image > img', 'height',  this.values['thumbnail_size_height']);
+				  this.addCssProperty( this.baseSelector + ':not(.collapse-enabled) .fusion-megamenu-title .fusion-megamenu-thumbnail > img', 'height',  this.values['thumbnail_size_width']);
 				}
 
 				if (!this.isDefault('mobile_trigger_font_size')) {
@@ -34967,15 +35569,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				    this.addCssProperty([ this.baseSelector + '.collapse-enabled .fusion-menu-element-list li a', this.baseSelector + '.collapse-enabled .fusion-menu-element-list li a .fusion-button', this.baseSelector + '.collapse-enabled .fusion-menu-element-list li .fusion-open-nav-submenu:before', this.baseSelector + '.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a' ], 'font-size',  this.values['mobile_font_size']);
 				  }
 
-				  if (  !  this.isDefault('fusion_font_family_mobile_typography')) {
-				    selectors = [ this.baseSelector + '.collapse-enabled', this.baseSelector + '.collapse-enabled ul li > a', this.baseSelector + '.collapse-enabled ul li > a .fusion-button', this.baseSelector + '.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a' ];
-				    this.addCssProperty(selectors, 'font-family',  this.values['fusion_font_family_mobile_typography']);
-				  }
-
-				  if (  !  this.isDefault('fusion_font_variant_mobile_typography')) {
-				    selectors = [ this.baseSelector + '.collapse-enabled', this.baseSelector + '.collapse-enabled ul li > a', this.baseSelector + '.collapse-enabled ul li > a .fusion-button', this.baseSelector + '.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a' ];
-				    this.addCssProperty(selectors, 'font-weight',  this.values['fusion_font_variant_mobile_typography']);
-				  }
+					selectors = [ this.baseSelector + '.collapse-enabled', this.baseSelector + '.collapse-enabled ul li > a', this.baseSelector + '.collapse-enabled ul li > a .fusion-button', this.baseSelector + '.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a' ];
+					menuStyles = _.fusionGetFontStyle( 'mobile_typography', this.values, 'object' );
+					jQuery.each( menuStyles, function( rule, value ) {
+						self.addCssProperty( selectors, rule, value );
+					} );
 
 				}
 
@@ -35037,6 +35635,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 							'mobile-trigger-fullwidth-' + this.values.mobile_nav_trigger_fullwidth,
 							'mobile-indent-' + this.values.mobile_indent_submenu,
 							'mobile-justify-' + this.values.mobile_justify_content,
+							'main-justify-' + this.values.main_justify_content,
 						].join( ' ' ),
 						style: ''
 					};
@@ -36363,7 +36962,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						inCart    = jQuery.inArray( product.id, queryData.items_in_cart ),
 						image     = '';
 
-					imageData.image_size = featuredImageSize;
+					imageData.image_size       = featuredImageSize;
+					imageData.display_woo_sale = 'yes' === values.show_sale;
 
 					// Title on rollover layout.
 					if ( 'title_on_rollover' === values.carousel_layout ) {
@@ -37124,6 +37724,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				tabsShortcode[ 'class' ] += ( 'vertical' === values.layout ) ? ' vertical-tabs' : ' horizontal-tabs';
+
+				if ( 'no' == values.show_tab_titles ) {
+					tabsShortcode[ 'class' ] += ' woo-tabs-hide-headings';
+				}
 
 				if ( '' !== values.id ) {
 					tabsShortcode.id = values.id;
@@ -38202,7 +38806,8 @@ jQuery( document ).ready( function() {
 						image     = '',
 						imageData = product.image_data;
 
-					imageData.image_size = featuredImageSize;
+					imageData.image_size       = featuredImageSize;
+					imageData.display_woo_sale = 'yes' === values.show_sale;
 
 					// Title on rollover layout.
 					if ( 'title_on_rollover' === values.carousel_layout ) {
@@ -38701,6 +39306,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				// Create attribute objects
 				attributes.attr         = this.buildAttr( atts.values );
 				attributes.attrCarousel = this.buildCarouselAttr( atts.values );
+
+				// Whether it has a dynamic data stream.
+				attributes.usingDynamic = 'undefined' !== typeof atts.values.multiple_upload;
 
 				// Any extras that need passed on.
 				attributes.show_nav = atts.values.show_nav;
@@ -46017,6 +46625,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						}
 					}
 
+					if ( 'grid' === values.layout ) {
+						if ( 'yes' === values.equal_heights ) {
+							attr[ 'class' ] += ' fusion-blog-equal-heights';
+						}
+					}
+
 					if ( 'undefined' !== typeof values.blog_grid_column_spacing || 0 === parseInt( values.blog_grid_column_spacing, 10 ) ) {
 						attr[ 'data-grid-col-space' ] = values.blog_grid_column_spacing;
 					}
@@ -46024,12 +46638,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					negativeMargin = ( -1 ) * parseFloat( values.blog_grid_column_spacing ) / 2;
 
 					attr.style = 'margin: ' + negativeMargin + 'px ' + negativeMargin + 'px 0;height:500px;';
-				}
-
-				if ( 'grid' === values.layout ) {
-					if ( 'yes' === values.equal_heights ) {
-						attr[ 'class' ] += ' fusion-blog-equal-heights';
-					}
 				}
 
 				return attr;
@@ -47574,11 +48182,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Validate values.
 				this.validateValues( atts.values );
+				this.values = atts.values;
 
 				// Any extras that need passed on.
 				attributes.cid         = this.model.get( 'cid' );
 				attributes.wrapperAttr = this.buildAttr( atts.values );
-				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.styles      = this.buildStyleBlock();
 				attributes.output      = this.buildOutput( atts );
 
 				return attributes;
@@ -47609,6 +48218,22 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						style: ''
 					} );
 
+				if ( '' !== values.padding_top ) {
+					attr.style += 'padding-top:' + values.padding_top + ';';
+				}
+
+				if ( '' !== values.padding_right ) {
+					attr.style += 'padding-right:' + values.padding_right + ';';
+				}
+
+				if ( '' !== values.padding_bottom ) {
+					attr.style += 'padding-bottom:' + values.padding_bottom + ';';
+				}
+
+				if ( '' !== values.padding_left ) {
+					attr.style += 'padding-left:' + values.padding_left + ';';
+				}
+
 				if ( '' !== values.margin_top ) {
 					attr.style += 'margin-top:' + values.margin_top + ';';
 				}
@@ -47625,8 +48250,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr.style += 'margin-left:' + values.margin_left + ';';
 				}
 
-				if ( '' !== values.alignment ) {
+				if ( '' !== values.alignment && 'stacked' !== values.layout ) {
 					attr.style += 'justify-content:' + values.alignment + ';';
+				}
+
+				if ( '' !== values.stacked_vertical_align && 'floated' !== values.layout ) {
+					attr.style += 'justify-content:' + values.stacked_vertical_align + ';';
+				}
+
+				if ( '' !== values.stacked_horizontal_align && 'floated' !== values.layout ) {
+					attr.style += 'align-items:' + values.stacked_horizontal_align + ';';
 				}
 
 				if ( '' !== values.height ) {
@@ -47635,6 +48268,14 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if ( '' !== values.font_size ) {
 					attr.style += 'font-size:' + values.font_size + ';';
+				}
+
+				if ( '' !== values.background_color ) {
+					attr.style += 'background-color:' + values.background_color + ';';
+				}
+
+				if ( '' !== values.layout ) {
+					attr[ 'class' ] += ' ' + values.layout;
 				}
 
 				if ( '' !== values[ 'class' ] ) {
@@ -47674,36 +48315,107 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * Builds styles.
 			 *
 			 * @since  2.4
-			 * @param  {Object} values - The values object.
 			 * @return {String}
 			 */
-			buildStyleBlock: function( values ) {
-				var styles = '<style type="text/css">';
+			buildStyleBlock: function() {
+				var selectors, css;
+				this.baseSelector = '.fusion-meta-tb.fusion-meta-tb-' +  this.model.get( 'cid' );
+				this.dynamic_css  = {};
 
-				if ( '' !== values.border_size ) {
-					styles += '.fusion-body .fusion-meta-tb.fusion-meta-tb-' + this.model.get( 'cid' ) + '{border-width:' + values.border_size + ';}';
+				selectors = [ this.baseSelector, this.baseSelector + ' a' ];
+				if ( !this.isDefault( 'text_color' ) ) {
+				  this.addCssProperty( selectors, 'color',  this.values.text_color );
 				}
 
-				if ( '' !== values.border_color ) {
-					styles += '.fusion-body .fusion-meta-tb.fusion-meta-tb-' + this.model.get( 'cid' ) + '{border-color:' + values.border_color + ' !important;}';
+				if ( !this.isDefault( 'link_color' ) ) {
+				  this.addCssProperty( [ this.baseSelector + ' span a' ], 'color',  this.values.link_color );
 				}
 
-				if ( '' !== values.text_color ) {
-					styles += '.fusion-body .fusion-fullwidth .fusion-builder-row.fusion-row .fusion-meta-tb.fusion-meta-tb-' + this.model.get( 'cid' ) + ',';
-					styles += '.fusion-body .fusion-fullwidth .fusion-builder-row.fusion-row .fusion-meta-tb.fusion-meta-tb-' + this.model.get( 'cid' ) + ' a{';
-					styles += 'color:' + values.text_color + ';';
-					styles += '}';
+				selectors = [ this.baseSelector + ' a:hover', this.baseSelector + ' span a:hover' ];
+
+				if ( !this.isDefault( 'text_hover_color' ) ) {
+				  this.addCssProperty( selectors, 'color',  this.values.text_hover_color );
 				}
 
-				if ( '' !== values.text_hover_color ) {
-					styles += '.fusion-body .fusion-fullwidth .fusion-builder-row.fusion-row .fusion-meta-tb.fusion-meta-tb-' + this.model.get( 'cid' ) + ' a:hover {';
-					styles += 'color:' + values.text_hover_color + ';';
-					styles += '}';
+				if ( !this.isDefault( 'border_color' ) ) {
+				  this.addCssProperty( [ this.baseSelector ], 'border-color',  this.values.border_color );
 				}
 
-				styles += '</style>';
+				if ( !this.isDefault( 'border_bottom' ) ) {
+				  this.addCssProperty( [ this.baseSelector ], 'border-bottom-width',  this.values.border_bottom );
+				}
 
-				return styles;
+				if ( !this.isDefault( 'border_top' ) ) {
+				  this.addCssProperty( [ this.baseSelector ], 'border-top-width',  this.values.border_top );
+				}
+
+				if ( !this.isDefault( 'border_left' ) ) {
+				  this.addCssProperty( [ this.baseSelector ], 'border-left-width',  this.values.border_left );
+				}
+
+				if ( !this.isDefault( 'border_right' ) ) {
+				  this.addCssProperty( [ this.baseSelector ], 'border-right-width',  this.values.border_right );
+				}
+
+				selectors = [ this.baseSelector + '  > span:not(.fusion-meta-tb-sep)' ];
+				if ( !this.isDefault( 'item_border_color' ) ) {
+				  this.addCssProperty( selectors, 'border-color',  this.values.item_border_color );
+				}
+
+				if ( !this.isDefault( 'item_border_bottom' ) ) {
+				  this.addCssProperty( selectors, 'border-bottom-width',  this.values.item_border_bottom );
+				}
+
+				if ( !this.isDefault( 'item_border_top' ) ) {
+				  this.addCssProperty( selectors, 'border-top-width',  this.values.item_border_top );
+				}
+
+				if ( !this.isDefault( 'item_border_left' ) ) {
+				  this.addCssProperty( selectors, 'border-left-width',  this.values.item_border_left );
+				}
+
+				if ( !this.isDefault( 'item_border_right' ) ) {
+				  this.addCssProperty( selectors, 'border-right-width',  this.values.item_border_right );
+				}
+
+				if ( !this.isDefault( 'item_background_color' ) ) {
+				  this.addCssProperty( selectors, 'background-color',  this.values.item_background_color );
+				}
+
+				if ( !this.isDefault( 'item_padding_top' ) ) {
+				  this.addCssProperty( selectors, 'padding-top',  this.values.item_padding_top );
+				}
+
+				if ( !this.isDefault( 'item_padding_bottom' ) ) {
+				  this.addCssProperty( selectors, 'padding-bottom',  this.values.item_padding_bottom );
+				}
+
+				if ( !this.isDefault( 'item_padding_left' ) ) {
+				  this.addCssProperty( selectors, 'padding-left',  this.values.item_padding_left );
+				}
+
+				if ( !this.isDefault( 'item_padding_right' ) ) {
+				  this.addCssProperty( selectors, 'padding-right',  this.values.item_padding_right );
+				}
+
+				if ( !this.isDefault( 'item_margin_top' ) ) {
+				  this.addCssProperty( selectors, 'margin-top',  this.values.item_margin_top );
+				}
+
+				if ( !this.isDefault( 'item_margin_bottom' ) ) {
+				  this.addCssProperty( selectors, 'margin-bottom',  this.values.item_margin_bottom );
+				}
+
+				if ( !this.isDefault( 'item_margin_left' ) ) {
+				  this.addCssProperty( selectors, 'margin-left',  this.values.item_margin_left );
+				}
+
+				if ( !this.isDefault( 'item_margin_right' ) ) {
+				  this.addCssProperty( selectors, 'margin-right',  this.values.item_margin_right );
+				}
+
+				css = this.parseCSS();
+				return ( css ) ? '<style type="text/css">' + css + '</style>' : '';
 			}
 		} );
 	} );
@@ -47716,6 +48428,20 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 		// Pagination view.
 		FusionPageBuilder.fusion_tb_pagination = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Runs after view DOM is patched.
+			 *
+			 * @since 3.2
+			 * @return {void}
+			 */
+			afterPatch: function() {
+				var $pagination = jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( this.$el.find( '.fusion-live-pagination-tb.layout-sticky' ) );
+
+				if ( jQuery( '.fusion-builder-module-settings[data-element-cid="' + this.model.get( 'cid' ) + '"]' ).length ) {
+					$pagination.addClass( 'show-live' );
+				}
+			},
 
 			/**
 			 * Modify template attributes.
@@ -47733,9 +48459,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				attributes.wrapperAttr = this.buildAttr( atts.values );
 				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.label       = window.fusionAllElements[ this.model.get( 'element_type' ) ].name;
+				attributes.icon        = window.fusionAllElements[ this.model.get( 'element_type' ) ].icon;
 
 				// Any extras that need passed on.
-				attributes.cid = this.model.get( 'cid' );
+				attributes.values = atts.values;
 
 				return attributes;
 			},
@@ -47748,8 +48476,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @return {void}
 			 */
 			validateValues: function( values ) {
-				values.border_size = _.fusionValidateAttrValue( values.border_size, 'px' );
-				values.height      = _.fusionValidateAttrValue( values.height, 'px' );
+				values.border_size           = _.fusionValidateAttrValue( values.border_size, 'px' );
+				values.height                = _.fusionValidateAttrValue( values.height, 'px' );
+				values.preview_height        = _.fusionValidateAttrValue( values.preview_height, 'px' );
+				values.preview_wrapper_width = _.fusionValidateAttrValue( values.preview_wrapper_width, 'px' );
+				values.preview_width         = _.fusionValidateAttrValue( values.preview_width, 'px' );
 			},
 
 			/**
@@ -47761,7 +48492,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 */
 			buildAttr: function( values ) {
 				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
-						class: 'single-navigation clearfix fusion-live-pagination-tb fusion-pagination-tb fusion-pagination-tb-' + this.model.get( 'cid' ),
+						class: 'fusion-live-pagination-tb fusion-pagination-tb fusion-pagination-tb-' + this.model.get( 'cid' ),
 						style: ''
 					} );
 
@@ -47781,7 +48512,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr.style += 'margin-left:' + values.margin_left + ';';
 				}
 
-				if ( '' !== values.height ) {
+				if ( '' !== values.height && 'sticky' !== values.layout ) {
 					attr.style += 'min-height:' + values.height + ';';
 				}
 
@@ -47789,11 +48520,27 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr.style += 'font-size:' + values.font_size + ';';
 				}
 
+				if ( 'sticky' !== values.layout ) {
+					attr[ 'class' ] += ' single-navigation clearfix ';
+				}
+
+				if ( values.layout ) {
+					attr[ 'class' ] += ' layout-' + values.layout;
+				}
+
+				if ( values.preview_position && 'preview' === values.layout ) {
+					attr[ 'class' ] += ' position-' + values.preview_position;
+				}
+
+				if ( 'yes' === values.box_shadow ) {
+					attr[ 'class' ] += ' has-box-shadow';
+				}
+
 				if ( '' !== values[ 'class' ] ) {
 					attr[ 'class' ] += ' ' + values[ 'class' ];
 				}
 
-				if ( '' !== values.alignment ) {
+				if ( '' !== values.alignment && 'sticky' !== values.layout ) {
 					attr[ 'class' ] += ' align-' + values.alignment;
 				}
 
@@ -47817,34 +48564,133 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				var styles = '<style type="text/css">';
 
 				if ( '' !== values.border_size ) {
-					styles += '.fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation{border-width:' + values.border_size + ';}';
+					styles += '.fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation:not(.layout-sticky){border-width:' + values.border_size + ';}';
+
+					if ( 'preview' === values.layout ) {
+						styles += '.fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation.layout-preview .fusion-pagination-preview-wrapper{';
+
+						if ( 'top' === values.preview_position ) {
+							styles += 'margin-bottom: calc(' + values.border_size + ' + 1px);';
+						} else {
+							styles += 'margin-top: calc(' + values.border_size + ' + 1px);';
+						}
+
+						styles += '}';
+					}
 				}
 
 				if ( '' !== values.border_color ) {
-					styles += '.fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation{border-color:' + values.border_color + ';}';
+					styles += '.fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation:not(.layout-sticky){border-color:' + values.border_color + ';}';
 				}
 
 				if ( '' !== values.text_color ) {
-					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation a,';
-					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation a::before,';
-					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation a::after {';
+					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation:not(.layout-sticky) a,';
+					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation:not(.layout-sticky) a::before,';
+					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation:not(.layout-sticky) a::after {';
 					styles += 'color:' + values.text_color + ';';
 					styles += '}';
 				}
 
 				if ( '' !== values.text_hover_color ) {
-					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation a:hover,';
-					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation a:hover::before,';
-					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation a:hover::after {';
+					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation:not(.layout-sticky) a:hover,';
+					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation:not(.layout-sticky) a:hover::before,';
+					styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.single-navigation:not(.layout-sticky) a:hover::after {';
 					styles += 'color:' + values.text_hover_color + ';';
+					styles += '}';
+				}
+
+				if ( '' !== values.bg_color && 'text' !== values.layout ) {
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.layout-sticky .fusion-control-navigation,';
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + ':not(.layout-sticky).layout-preview .fusion-pagination-preview-wrapper{';
+					styles += 'background:' + values.bg_color + ';}';
+				}
+
+				if ( 'yes' === values.box_shadow && 'text' !== values.layout ) {
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.layout-sticky.has-box-shadow .fusion-control-navigation:before,';
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + ':not(.layout-sticky).layout-preview.has-box-shadow .fusion-pagination-preview-wrapper{';
+					styles += 'box-shadow:' + _.fusionGetBoxShadowStyle( values ) + ' !important;}';
+				}
+
+				styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.layout-sticky .fusion-control-navigation a,';
+				styles += '.fusion-fullwidth .fusion-builder-row.fusion-row .fusion-pagination-tb-' + this.model.get( 'cid' ) + ':not(.layout-sticky).layout-preview .fusion-pagination-preview-wrapper .fusion-item-title {';
+
+				if ( '' !== values.preview_text_color && 'text' !== values.layout ) {
+					styles += 'color:' + values.preview_text_color + ';';
+				}
+
+				if ( '' !== values.preview_font_size && 'text' !== values.layout ) {
+					styles += 'font-size:' + values.preview_font_size + ';';
+				}
+
+				styles += '}';
+
+				if ( '' !== values.preview_height && 'sticky' === values.layout ) {
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.layout-sticky .fusion-control-navigation{';
+					styles += 'height:' + values.preview_height + ';';
+					styles += '}';
+				}
+
+				if ( '' !== values.preview_wrapper_width && 'sticky' === values.layout ) {
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.layout-sticky .fusion-control-navigation{';
+					styles += 'min-width:' + values.preview_wrapper_width + ';';
+					styles += '}';
+				}
+
+				if ( '' !== values.preview_width && 'sticky' === values.layout ) {
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.layout-sticky .fusion-control-navigation.next{';
+					if ( jQuery( 'body' ).hasClass( 'rtl' ) ) {
+						styles += 'transform:translate( calc( max( -' + values.preview_wrapper_width + ', -50vw ) + ' + values.preview_width + '), -50% ) !important;';
+					} else {
+						styles += 'transform:translate( calc( min( ' + values.preview_wrapper_width + ', 50vw ) - ' + values.preview_width + '), -50% );';
+					}
+					styles += '}';
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.layout-sticky .fusion-control-navigation.prev{';
+					if ( jQuery( 'body' ).hasClass( 'rtl' ) ) {
+						styles += 'transform:translate( calc( min( ' + values.preview_wrapper_width + ', 50vw ) - ' + values.preview_width + '), -50% ) !important;';
+					} else {
+						styles += 'transform:translate( calc( max( -' + values.preview_wrapper_width + ', -50vw ) + ' + values.preview_width + '), -50% );';
+					}
+					styles += '}';
+				}
+
+				if ( '' !== values.z_index && 'sticky' === values.layout ) {
+					styles += '.fusion-body .fusion-pagination-tb-' + this.model.get( 'cid' ) + '.layout-sticky{';
+					styles += 'z-index:' + parseInt( values.z_index ) + ';';
 					styles += '}';
 				}
 
 				styles += '</style>';
 
 				return styles;
-			}
+			},
 
+			/**
+			 * Open actual modal.
+			 *
+			 * @since 2.0
+			 * @return {void}
+			 */
+
+			onSettingsOpen: function() {
+				var $pagination = jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( this.$el.find( '.fusion-live-pagination-tb' ) );
+
+				if ( $pagination.hasClass( 'layout-sticky' ) ) {
+					$pagination.addClass( 'show-live' );
+				}
+			},
+
+			/**
+			 * Close the modal.
+			 *
+			 * @since 2.0
+			 * @return {void}
+			 */
+			onSettingsClose: function() {
+				var $pagination = jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( this.$el.find( '.fusion-live-pagination-tb' ) );
+				if ( $pagination.hasClass( 'layout-sticky' ) ) {
+					$pagination.removeClass( 'show-live' );
+				}
+			}
 		} );
 	} );
 }( jQuery ) );
@@ -48158,6 +49004,3087 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( 'body' ).trigger( 'fusion-element-render-fusion_blog', this.model.attributes.cid );
 			}
 
+		} );
+	} );
+}( jQuery ) );
+;/* global fusionAllElements */
+var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Price Component View.
+		FusionPageBuilder.fusion_tb_woo_price = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				// Validate values.
+				this.validateValues( atts.values );
+
+				this.values = atts.values;
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Modifies the values.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {void}
+			 */
+			validateValues: function( values ) {
+				var borderRadiusTopLeft     = 'undefined' !== typeof values.border_radius_top_left && '' !== values.border_radius_top_left ? _.fusionGetValueWithUnit( values.border_radius_top_left ) : '0px',
+					borderRadiusTopRight    = 'undefined' !== typeof values.border_radius_top_right && '' !== values.border_radius_top_right ? _.fusionGetValueWithUnit( values.border_radius_top_right ) : '0px',
+					borderRadiusBottomRight = 'undefined' !== typeof values.border_radius_bottom_right && '' !== values.border_radius_bottom_right ? _.fusionGetValueWithUnit( values.border_radius_bottom_right ) : '0px',
+					borderRadiusBottomLeft  = 'undefined' !== typeof values.border_radius_bottom_left && '' !== values.border_radius_bottom_left ? _.fusionGetValueWithUnit( values.border_radius_bottom_left ) : '0px';
+
+				values.border_radius     = borderRadiusTopLeft + ' ' + borderRadiusTopRight + ' ' + borderRadiusBottomRight + ' ' + borderRadiusBottomLeft;
+				values.border_radius     = ( '0px 0px 0px 0px' === values.border_radius ) ? '' : values.border_radius;
+				values.badge_border_size = _.fusionValidateAttrValue( values.badge_border_size, 'px' );
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-price-tb fusion-woo-price-tb-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( '' !== values.margin_top ) {
+					attr.style += 'margin-top:' + values.margin_top + ';';
+				}
+
+				if ( '' !== values.margin_right ) {
+					attr.style += 'margin-right:' + values.margin_right + ';';
+				}
+
+				if ( '' !== values.margin_bottom ) {
+					attr.style += 'margin-bottom:' + values.margin_bottom + ';';
+				}
+
+				if ( '' !== values.margin_left ) {
+					attr.style += 'margin-left:' + values.margin_left + ';';
+				}
+
+				if ( '' !== values.alignment ) {
+					attr.style += 'justify-content:' + values.alignment + ';';
+				}
+
+				if ( 'yes' !== values.show_sale ) {
+					attr[ 'class' ] += ' hide-sale';
+				}
+
+				if ( '' !== values.sale_position ) {
+					attr[ 'class' ] += ' sale-position-' + values.sale_position;
+				}
+
+				if ( '' !== values.layout ) {
+					attr[ 'class' ] += ' ' + values.layout;
+				}
+
+				if ( '' !== values.badge_position && 'no' !== values.show_badge ) {
+					attr[ 'class' ] += ' badge-position-' + values.badge_position;
+				}
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Adds CSS property to object.
+			 *
+			 * @since  3.2
+			 * @param  {String} selectors - The CSS selectors.
+			 * @param  {String} property - The CSS property.
+			 * @param  {String} value - The CSS property value.
+			 * @param  {Bool}   important - Should have important tag.
+			 * @return {void}
+			 */
+			addCssProperty: function ( selectors, property, value, important ) {
+
+				if ( 'object' === typeof selectors ) {
+					selectors = Object.values( selectors );
+				}
+
+				if ( 'object' === typeof selectors ) {
+					selectors = selectors.join( ',' );
+				}
+
+				if ( 'object' !== typeof this.dynamic_css[ selectors ] ) {
+					this.dynamic_css[ selectors ] = {};
+				}
+
+				if ( 'undefined' !== typeof important && important ) {
+					value += ' !important';
+				}
+				if ( 'undefined' === typeof this.dynamic_css[ selectors ][ property ] || ( 'undefined' !== typeof important && important ) || ! this.dynamic_css[ selectors ][ property ].includes( 'important' ) ) {
+					this.dynamic_css[ selectors ][ property ] = value;
+				}
+			},
+
+			/**
+			 * Checks if param has got default value or not.
+			 *
+			 * @since  3.2
+			 * @param  {String} param - The param.
+			 * @return {Bool}
+			 */
+			isDefault: function( param ) {
+				return this.values[ param ] === fusionAllElements.fusion_tb_woo_price.defaults[ param ];
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-price-tb' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.woo_price ) {
+					output = atts.query_data.woo_price;
+				}
+
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var css, selectors,
+				fontStyles = {},
+				self = this;
+
+				this.baseSelector = '.fusion-woo-price-tb.fusion-woo-price-tb-' +  this.model.get( 'cid' );
+				this.dynamic_css  = {};
+
+				selectors = [
+					this.baseSelector + ' .price',
+					this.baseSelector + ' .price ins .amount',
+					this.baseSelector + ' .price del .amount',
+					this.baseSelector + ' .price > .amount'
+				];
+
+				if ( ! this.isDefault( 'price_font_size' ) ) {
+					this.addCssProperty( selectors, 'font-size', values.price_font_size );
+				}
+
+				if ( ! this.isDefault( 'price_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.price_color );
+				}
+
+				fontStyles = _.fusionGetFontStyle( 'price_typography', values, 'object' );
+				jQuery.each( fontStyles, function( rule, value ) {
+					self.addCssProperty( selectors, rule, value );
+				} );
+
+				if ( ! this.isDefault( 'sale_font_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' .price del .amount', 'font-size', values.sale_font_size );
+				}
+
+				if ( ! this.isDefault( 'sale_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .price del .amount', 'color', values.sale_color );
+				}
+
+				fontStyles = _.fusionGetFontStyle( 'sale_typography', values, 'object' );
+				jQuery.each( fontStyles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector + ' .price del .amount', rule, value );
+				} );
+
+				if ( ! this.isDefault( 'stock_font_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' p.stock', 'font-size', values.stock_font_size );
+				}
+
+				if ( ! this.isDefault( 'stock_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' p.stock', 'color', values.stock_color );
+				}
+
+				fontStyles = _.fusionGetFontStyle( 'stock_typography', values, 'object' );
+				jQuery.each( fontStyles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector + ' p.stock', rule, value );
+				} );
+
+				if ( ! this.isDefault( 'badge_font_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-onsale', 'font-size', values.badge_font_size );
+				}
+
+				if ( ! this.isDefault( 'badge_text_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-onsale', 'color', values.badge_text_color );
+				}
+
+				fontStyles = _.fusionGetFontStyle( 'badge_typography', values, 'object' );
+				jQuery.each( fontStyles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector + ' .fusion-onsale', rule, value );
+				} );
+
+				if ( ! this.isDefault( 'badge_bg_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-onsale', 'background', values.badge_bg_color );
+				}
+
+				if ( ! this.isDefault( 'badge_border_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-onsale', 'border-width', values.badge_border_size );
+				}
+
+				if ( ! this.isDefault( 'badge_border_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-onsale', 'border-color', values.badge_border_color );
+				}
+
+				if ( ! this.isDefault( 'badge_font_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-onsale', 'font-size', values.badge_font_size );
+				}
+
+				if ( values.border_radius && '' !== values.border_radius ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-onsale', 'border-radius', values.border_radius );
+				}
+
+				css = this.parseCSS();
+				return ( css ) ? '<style>' + css + '</style>' : '';
+
+			},
+
+			/**
+			 * Parses CSS.
+			 *
+			 * @since  3.2
+			 * @return {String}
+			 */
+			parseCSS: function () {
+				var css = '';
+
+				if ( 'object' !== typeof this.dynamic_css ) {
+					return '';
+				}
+
+				_.each( this.dynamic_css, function ( properties, selector ) {
+					if ( 'object' === typeof properties ) {
+						css += selector + '{';
+						_.each( properties, function ( value, property ) {
+							css += property + ':' + value + ';';
+						} );
+						css += '}';
+					}
+				} );
+
+				return css;
+			}
+		} );
+	} );
+}( jQuery ) );
+;/* global fusionSanitize */
+
+var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Cart Component View.
+		FusionPageBuilder.fusion_tb_woo_cart = FusionPageBuilder.ElementView.extend( {
+			onInit: function() {
+				this.variationMarkup = this.$el.length && this.$el.find( '.single_variation_wrap' ).length ? this.$el.find( '.single_variation_wrap' ).html() : '';
+			},
+
+			beforePatch: function() {
+				this.variationMarkup = this.$el.length && this.$el.find( '.single_variation_wrap' ).length ? this.$el.find( '.single_variation_wrap' ).html() : '';
+			},
+
+			afterPatch: function() {
+				var $form = jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( this.$el.find( '.variations_form' ) ),
+					self  = this;
+
+				this._refreshJs();
+
+				if ( $form.length && 'function' === typeof $form.wc_variation_form ) {
+					$form.wc_variation_form();
+				}
+
+				if ( 'string' === typeof this.variationMarkup && '' !== this.variationMarkup ) {
+					setTimeout( function() {
+						self.$el.find( '.single_variation_wrap' ).html( self.variationMarkup );
+						self.$el.find( '.single_variation' ).css( 'display', 'flex' );
+					}, 300 );
+				}
+			},
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				// Validate values.
+				this.values = atts.values;
+				this.params = this.model.get( 'params' );
+				this.extras = atts.extras;
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr = {
+					'class': 'fusion-woo-cart fusion-woo-cart-' + this.model.get( 'cid' )
+				};
+
+				if ( ! this.$el.closest( 'body' ).hasClass( 'woocommerce' ) ) {
+					attr[ 'class' ] += ' woocommerce';
+				}
+				attr =  _.fusionVisibilityAtts( values.hide_on_mobile, attr );
+				attr = _.fusionAnimations( values, attr );
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				if ( 'no' === values.show_price ) {
+					attr[ 'class' ] += ' hide-price';
+				}
+
+				if ( 'no' === values.show_stock ) {
+					attr[ 'class' ] += ' hide-stock';
+				}
+
+				return attr;
+
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-cart' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.markup ) {
+					output = atts.query_data.markup;
+				}
+
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				// variables into current scope
+				var table, table_td, stock, label, table_tr,
+					self = this,
+					headingStyles = {},
+					select, arrow, both, border_colors, color_swatch, image_swatch, button_swatch, swatches, active_swatches, hover_swatches, direction, hover_color, width, full_swatches, info, description, prices, sales, variation_clear, button_wrapper, quantity_input, quantity_buttons, quantity_both, height, quantity_font, hover_buttons, button, button_size_map, button_dimensions, button_hover, css, image_swatch_radius, color_swatch_radius, map_flex,
+					topMargin, bottomMargin, button_wrapper_quantity;
+
+				this.baseSelector = '.fusion-woo-cart-' + this.model.get( 'cid' );
+				this.dynamic_css  = {};
+				// Variation margins.
+				table =  this.baseSelector + ' table.variations';
+				if ( !this.isDefault( 'margin_top' ) ) {
+				  this.addCssProperty( table, 'margin-top',  _.fusionGetValueWithUnit( this.values.margin_top ) );
+				}
+
+				if ( !this.isDefault( 'margin_right' ) ) {
+				  this.addCssProperty( table, 'margin-right',  _.fusionGetValueWithUnit( this.values.margin_right ) );
+				}
+
+				if ( !this.isDefault( 'margin_bottom' ) ) {
+				  this.addCssProperty( table, 'margin-bottom',  _.fusionGetValueWithUnit( this.values.margin_bottom ) );
+				}
+
+				if ( !this.isDefault( 'margin_left' ) ) {
+				  this.addCssProperty( table, 'margin-left',  _.fusionGetValueWithUnit( this.values.margin_left ) );
+				}
+
+				table_td =  this.baseSelector + ' table td';
+				// Border size.
+				if ( !this.isDefault( 'border_sizes_top' ) ) {
+				  this.addCssProperty( table_td, 'border-top-width',  _.fusionGetValueWithUnit( this.values.border_sizes_top ) );
+				}
+
+				if ( !this.isDefault( 'border_sizes_right' ) ) {
+				  this.addCssProperty( table_td, 'border-right-width',  _.fusionGetValueWithUnit( this.values.border_sizes_right ) );
+				}
+
+				if ( !this.isDefault( 'border_sizes_bottom' ) ) {
+				  this.addCssProperty( table_td, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.border_sizes_bottom ) );
+				}
+
+				if ( !this.isDefault( 'border_sizes_left' ) ) {
+				  this.addCssProperty( table_td, 'border-left-width',  _.fusionGetValueWithUnit( this.values.border_sizes_left ) );
+				}
+
+				if ( !this.isDefault( 'border_color' ) ) {
+				  this.addCssProperty( table_td, 'border-color',  this.values.border_color );
+				}
+
+				if ( !this.isDefault( 'cell_padding_top' ) ) {
+				  this.addCssProperty( table_td, 'padding-top',  _.fusionGetValueWithUnit( this.values.cell_padding_top ) );
+				}
+
+				if ( !this.isDefault( 'cell_padding_right' ) ) {
+				  this.addCssProperty( table_td, 'padding-right',  _.fusionGetValueWithUnit( this.values.cell_padding_right ) );
+				}
+
+				if ( !this.isDefault( 'cell_padding_bottom' ) ) {
+				  this.addCssProperty( table_td, 'padding-bottom',  _.fusionGetValueWithUnit( this.values.cell_padding_bottom ) );
+				}
+
+				if ( !this.isDefault( 'cell_padding_left' ) ) {
+				  this.addCssProperty( table_td, 'padding-left',  _.fusionGetValueWithUnit( this.values.cell_padding_left ) );
+				}
+
+				if ( !this.isDefault( 'cell_background' ) ) {
+				  this.addCssProperty( table_td, 'background-color',  this.values.cell_background );
+				}
+
+				label =  this.baseSelector + ' td.label';
+				if ( 'floated' !==  this.values.variation_layout ) {
+				  table_tr =  this.baseSelector + ' table tr';
+				  this.addCssProperty( table_tr, 'display', 'flex' );
+				  this.addCssProperty( table_tr, 'flex-direction', 'column' );
+				  this.addCssProperty( table_tr, 'width', '100%' );
+				} else if ( !this.isDefault( 'label_area_width' ) ) {
+				  this.addCssProperty( label, 'width',  _.fusionGetValueWithUnit( this.values.label_area_width ) );
+				}
+
+				if ( !this.isDefault( 'text_align' ) ) {
+				  this.addCssProperty( label, 'text-align',  this.values.text_align );
+
+				  map_flex = {
+					center: 'center',
+					left: ( jQuery( 'body' ).hasClass( 'rtl' ) ? 'flex-end' : 'flex-start' ),
+					right: ( jQuery( 'body' ).hasClass( 'rtl' ) ? 'flex-start' : 'flex-end' )
+				};
+				 this.addCssProperty( table + ' .avada-select-wrapper', 'justify-content', map_flex[ this.values.text_align ] );
+				}
+
+				// Label text styling, share with grouped.
+				label = [
+					this.baseSelector + ' td.label',
+					this.baseSelector + ' .woocommerce-grouped-product-list label',
+					this.baseSelector + ' .woocommerce-grouped-product-list label a',
+					this.baseSelector + ' .woocommerce-grouped-product-list .amount'
+				];
+
+				if ( !this.isDefault( 'label_color' ) ) {
+				  this.addCssProperty( label, 'color',  this.values.label_color );
+				}
+
+				if ( !this.isDefault( 'label_font_size' ) ) {
+				  this.addCssProperty( label, 'font-size',  _.fusionGetValueWithUnit( this.values.label_font_size ) );
+				}
+
+				headingStyles = _.fusionGetFontStyle( 'label_typography', values, 'object' );
+				jQuery.each( headingStyles, function( rule, value ) {
+					self.addCssProperty( label, rule, value );
+				} );
+
+				if ( !this.isDefault( 'select_style' ) ) {
+				  select = table + ' select';
+				  arrow = table + ' .select-arrow';
+				  both = [ select, arrow ];
+				  // Select height.
+				  if (  !  this.isDefault( 'select_height' ) ) {
+				    this.addCssProperty( select, 'height',  _.fusionGetValueWithUnit( this.values.select_height ) );
+				  }
+
+				  if (  !  this.isDefault( 'select_font_size' ) ) {
+				    this.addCssProperty( select, 'font-size',  _.fusionGetValueWithUnit( this.values.select_font_size ) );
+				    this.addCssProperty( arrow, 'font-size', 'calc( ( ' +  _.fusionGetValueWithUnit( this.values.select_font_size ) + ' ) * .75 )', true );
+				  }
+
+				  if (  !  this.isDefault( 'select_color' ) ) {
+				    this.addCssProperty( both, 'color',  this.values.select_color );
+				  }
+
+				  if (  !  this.isDefault( 'select_background' ) ) {
+				    this.addCssProperty( select, 'background-color',  this.values.select_background );
+				  }
+
+				  if (  !  this.isDefault( 'select_border_color' ) ) {
+				    border_colors = [ select, select + ':focus' ];
+				    this.addCssProperty( border_colors, 'border-color',  this.values.select_border_color );
+				  }
+
+				  if (  !  this.isDefault( 'select_border_sizes_top' ) && '' !==  this.values.select_border_sizes_top ) {
+				    this.addCssProperty( select, 'border-top-width',  _.fusionGetValueWithUnit( this.values.select_border_sizes_top ) );
+				    this.addCssProperty( arrow, 'top',  _.fusionGetValueWithUnit( this.values.select_border_sizes_top ) );
+				  }
+
+				  if (  !  this.isDefault( 'select_border_sizes_right' ) && '' !==  this.values.select_border_sizes_right ) {
+				    this.addCssProperty( select, 'border-right-width',  _.fusionGetValueWithUnit( this.values.select_border_sizes_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'select_border_sizes_bottom' ) && '' !==  this.values.select_border_sizes_bottom ) {
+				    this.addCssProperty( select, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.select_border_sizes_bottom ) );
+				    this.addCssProperty( arrow, 'bottom',  _.fusionGetValueWithUnit( this.values.select_border_sizes_bottom ) );
+				  }
+
+				  if (  !  this.isDefault( 'select_border_sizes_left' ) && '' !==  this.values.select_border_sizes_left ) {
+				    this.addCssProperty( select, 'border-left-width',  _.fusionGetValueWithUnit( this.values.select_border_sizes_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'select_border_color' ) &&   !  this.isDefault( 'select_border_sizes_right' ) &&   !  this.isDefault( 'select_border_sizes_left' ) ) {
+				    this.addCssProperty( arrow, 'border-left',  _.fusionGetValueWithUnit( this.values.select_border_sizes_left ) + ' solid ' +  this.values.select_border_color );
+				  }
+
+				  if (  !  this.isDefault( 'border_radius_top_left' ) ) {
+				    this.addCssProperty( select, 'border-top-left-radius',  _.fusionGetValueWithUnit( this.values.border_radius_top_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'border_radius_top_right' ) ) {
+				    this.addCssProperty( select, 'border-top-right-radius',  _.fusionGetValueWithUnit( this.values.border_radius_top_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'border_radius_bottom_right' ) ) {
+				    this.addCssProperty( select, 'border-bottom-right-radius',  _.fusionGetValueWithUnit( this.values.border_radius_bottom_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'border_radius_bottom_left' ) ) {
+				    this.addCssProperty( select, 'border-bottom-left-radius',  _.fusionGetValueWithUnit( this.values.border_radius_bottom_left ) );
+				  }
+
+				}
+
+				if ( !this.isDefault( 'swatch_style' ) && this.extras.woocommerce_variations ) {
+				  color_swatch = table + ' .avada-color-select';
+				  image_swatch = table + ' .avada-image-select';
+				  button_swatch = table + ' .avada-button-select';
+				  swatches = [ color_swatch, image_swatch, button_swatch ];
+				  active_swatches = [ color_swatch + '[data-checked]', image_swatch + '[data-checked]', button_swatch + '[data-checked]' ];
+				  hover_swatches = [ color_swatch + ':hover', image_swatch + ':hover', button_swatch + ':hover', color_swatch + ':focus:not( [data-checked] )', image_swatch + ':focus:not( [data-checked] )', button_swatch + ':focus:not( [data-checked] )' ];
+				  // General swatch styling.
+				 if ( !this.isDefault( 'swatch_margin_top' ) ) {
+					  this.addCssProperty( swatches, 'margin-top',  _.fusionGetValueWithUnit( this.values.swatch_margin_top ) );
+					}
+
+					if ( !this.isDefault( 'swatch_margin_right' ) ) {
+					  this.addCssProperty( swatches, 'margin-right',  _.fusionGetValueWithUnit( this.values.swatch_margin_right ) );
+					}
+
+					if ( !this.isDefault( 'swatch_margin_bottom' ) ) {
+					  this.addCssProperty( swatches, 'margin-bottom',  _.fusionGetValueWithUnit( this.values.swatch_margin_bottom ) );
+					}
+
+					if ( !this.isDefault( 'swatch_margin_left' ) ) {
+					  this.addCssProperty( swatches, 'margin-left',  _.fusionGetValueWithUnit( this.values.swatch_margin_left ) );
+					}
+
+				  if (  !  this.isDefault( 'swatch_background_color' ) ) {
+				    this.addCssProperty( swatches, 'background-color',  this.values.swatch_background_color );
+				  }
+
+				  if (  !  this.isDefault( 'swatch_background_color_active' ) ) {
+				    this.addCssProperty( active_swatches, 'background-color',  this.values.swatch_background_color_active );
+				  }
+
+				  if (  !  this.isDefault( 'swatch_border_sizes_top' ) && '' !==  this.values.swatch_border_sizes_top ) {
+				    this.addCssProperty( swatches, 'border-top-width',  _.fusionGetValueWithUnit( this.values.swatch_border_sizes_top ) );
+				  }
+
+				  if (  !  this.isDefault( 'swatch_border_sizes_right' ) && '' !==  this.values.swatch_border_sizes_right ) {
+				    this.addCssProperty( swatches, 'border-right-width',  _.fusionGetValueWithUnit( this.values.swatch_border_sizes_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'swatch_border_sizes_bottom' ) && '' !==  this.values.swatch_border_sizes_bottom ) {
+				    this.addCssProperty( swatches, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.swatch_border_sizes_bottom ) );
+				  }
+
+				  if (  !  this.isDefault( 'swatch_border_sizes_left' ) && '' !==  this.values.swatch_border_sizes_left ) {
+				    this.addCssProperty( swatches, 'border-left-width',  _.fusionGetValueWithUnit( this.values.swatch_border_sizes_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'swatch_border_color' ) ) {
+				    this.addCssProperty( swatches, 'border-color',  this.values.swatch_border_color );
+				  }
+
+				  if (  !  this.isDefault( 'swatch_border_color_active' ) ) {
+				    this.addCssProperty( active_swatches, 'border-color',  this.values.swatch_border_color_active );
+				    hover_color = jQuery.Color( this.values.swatch_border_color_active ).alpha( 0.5 ).toRgbaString();
+				    this.addCssProperty( hover_swatches, 'border-color', hover_color );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_height' ) ) {
+				    this.addCssProperty( color_swatch, 'height',  _.fusionGetValueWithUnit( this.values.color_swatch_height ) );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_width' ) ) {
+				    width = ( 'auto' ===  this.values.color_swatch_width ) ? 'auto' :  _.fusionGetValueWithUnit( this.values.color_swatch_width );
+				    this.addCssProperty( color_swatch, 'width', width );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_padding_top' ) && '' !==  this.values.color_swatch_padding_top ) {
+				    this.addCssProperty( color_swatch, 'padding-top',  _.fusionGetValueWithUnit( this.values.color_swatch_padding_top ) );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_padding_right' ) && '' !==  this.values.color_swatch_padding_right ) {
+				    this.addCssProperty( color_swatch, 'padding-right',  _.fusionGetValueWithUnit( this.values.color_swatch_padding_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_padding_bottom' ) && '' !==  this.values.color_swatch_padding_bottom ) {
+				    this.addCssProperty( color_swatch, 'padding-bottom',  _.fusionGetValueWithUnit( this.values.color_swatch_padding_bottom ) );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_padding_left' ) && '' !==  this.values.color_swatch_padding_left ) {
+				    this.addCssProperty( color_swatch, 'padding-left',  _.fusionGetValueWithUnit( this.values.color_swatch_padding_left ) );
+				  }
+				color_swatch_radius = [
+					color_swatch,
+					color_swatch + ' span'
+				];
+				  if (  !  this.isDefault( 'color_swatch_border_radius_top_left' ) ) {
+				    this.addCssProperty( color_swatch_radius, 'border-top-left-radius',  _.fusionGetValueWithUnit( this.values.color_swatch_border_radius_top_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_border_radius_top_right' ) ) {
+				    this.addCssProperty( color_swatch_radius, 'border-top-right-radius',  _.fusionGetValueWithUnit( this.values.color_swatch_border_radius_top_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_border_radius_bottom_right' ) ) {
+				    this.addCssProperty( color_swatch_radius, 'border-bottom-right-radius',  _.fusionGetValueWithUnit( this.values.color_swatch_border_radius_bottom_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'color_swatch_border_radius_bottom_left' ) ) {
+				    this.addCssProperty( color_swatch_radius, 'border-bottom-left-radius',  _.fusionGetValueWithUnit( this.values.color_swatch_border_radius_bottom_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_height' ) ) {
+				    this.addCssProperty( image_swatch, 'height',  _.fusionGetValueWithUnit( this.values.image_swatch_height ) );
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_width' ) ) {
+				    width = ( 'auto' ===  this.values.image_swatch_width ) ? 'auto' :  _.fusionGetValueWithUnit( this.values.image_swatch_width );
+				    this.addCssProperty( image_swatch, 'width', width );
+
+				    if ( 'auto' !== this.values.image_swatch_width ) {
+						this.addCssProperty( image_swatch + ' img', 'width', '100%' );
+					}
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_padding_top' ) && '' !==  this.values.image_swatch_padding_top ) {
+				    this.addCssProperty( image_swatch, 'padding-top',  _.fusionGetValueWithUnit( this.values.image_swatch_padding_top ) );
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_padding_right' ) && '' !==  this.values.image_swatch_padding_right ) {
+				    this.addCssProperty( image_swatch, 'padding-right',  _.fusionGetValueWithUnit( this.values.image_swatch_padding_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_padding_bottom' ) && '' !==  this.values.image_swatch_padding_bottom ) {
+				    this.addCssProperty( image_swatch, 'padding-bottom',  _.fusionGetValueWithUnit( this.values.image_swatch_padding_bottom ) );
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_padding_left' ) && '' !==  this.values.image_swatch_padding_left ) {
+				    this.addCssProperty( image_swatch, 'padding-left',  _.fusionGetValueWithUnit( this.values.image_swatch_padding_left ) );
+				  }
+				image_swatch_radius = [
+					image_swatch,
+					image_swatch + ' img'
+				];
+				  if (  !  this.isDefault( 'image_swatch_border_radius_top_left' ) ) {
+				    this.addCssProperty( image_swatch_radius, 'border-top-left-radius',  _.fusionGetValueWithUnit( this.values.image_swatch_border_radius_top_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_border_radius_top_right' ) ) {
+				    this.addCssProperty( image_swatch_radius, 'border-top-right-radius',  _.fusionGetValueWithUnit( this.values.image_swatch_border_radius_top_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_border_radius_bottom_right' ) ) {
+				    this.addCssProperty( image_swatch_radius, 'border-bottom-right-radius',  _.fusionGetValueWithUnit( this.values.image_swatch_border_radius_bottom_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'image_swatch_border_radius_bottom_left' ) ) {
+				    this.addCssProperty( image_swatch_radius, 'border-bottom-left-radius',  _.fusionGetValueWithUnit( this.values.image_swatch_border_radius_bottom_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_height' ) ) {
+				    this.addCssProperty( button_swatch, 'height',  _.fusionGetValueWithUnit( this.values.button_swatch_height ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_width' ) ) {
+				    width = ( 'auto' ===  this.values.button_swatch_width ) ? 'auto' :  _.fusionGetValueWithUnit( this.values.button_swatch_width );
+				    this.addCssProperty( button_swatch, 'width', width );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_padding_top' ) && '' !==  this.values.button_swatch_padding_top ) {
+				    this.addCssProperty( button_swatch, 'padding-top',  _.fusionGetValueWithUnit( this.values.button_swatch_padding_top ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_padding_right' ) && '' !==  this.values.button_swatch_padding_right ) {
+				    this.addCssProperty( button_swatch, 'padding-right',  _.fusionGetValueWithUnit( this.values.button_swatch_padding_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_padding_bottom' ) && '' !==  this.values.button_swatch_padding_bottom ) {
+				    this.addCssProperty( button_swatch, 'padding-bottom',  _.fusionGetValueWithUnit( this.values.button_swatch_padding_bottom ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_padding_left' ) && '' !==  this.values.button_swatch_padding_left ) {
+				    this.addCssProperty( button_swatch, 'padding-left',  _.fusionGetValueWithUnit( this.values.button_swatch_padding_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_border_radius_top_left' ) ) {
+				    this.addCssProperty( button_swatch, 'border-top-left-radius',  _.fusionGetValueWithUnit( this.values.button_swatch_border_radius_top_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_border_radius_top_right' ) ) {
+				    this.addCssProperty( button_swatch, 'border-top-right-radius',  _.fusionGetValueWithUnit( this.values.button_swatch_border_radius_top_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_border_radius_bottom_right' ) ) {
+				    this.addCssProperty( button_swatch, 'border-bottom-right-radius',  _.fusionGetValueWithUnit( this.values.button_swatch_border_radius_bottom_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_border_radius_bottom_left' ) ) {
+				    this.addCssProperty( button_swatch, 'border-bottom-left-radius',  _.fusionGetValueWithUnit( this.values.button_swatch_border_radius_bottom_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_font_size' ) ) {
+				    this.addCssProperty( button_swatch, 'font-size',  _.fusionGetValueWithUnit( this.values.button_swatch_font_size ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_color' ) ) {
+				    this.addCssProperty( button_swatch, 'color',  this.values.button_swatch_color );
+				  }
+
+				  if (  !  this.isDefault( 'button_swatch_color_active' ) ) {
+				    full_swatches = [ color_swatch + '[data-checked]', image_swatch + '[data-checked]', button_swatch + '[data-checked]', color_swatch + ':hover', image_swatch + ':hover', button_swatch + ':hover', color_swatch + ':focus', image_swatch + ':focus', button_swatch + ':focus' ];
+				    this.addCssProperty( full_swatches, 'color',  this.values.button_swatch_color_active );
+				  }
+
+				}
+
+				info =  this.baseSelector + ' .woocommerce-variation';
+				// Info padding.
+				if ( !this.isDefault( 'info_padding_top' ) ) {
+				  this.addCssProperty( info, 'padding-top',  _.fusionGetValueWithUnit( this.values.info_padding_top ) );
+				}
+
+				if ( !this.isDefault( 'info_padding_right' ) ) {
+				  this.addCssProperty( info, 'padding-right',  _.fusionGetValueWithUnit( this.values.info_padding_right ) );
+				}
+
+				if ( !this.isDefault( 'info_padding_bottom' ) ) {
+				  this.addCssProperty( info, 'padding-bottom',  _.fusionGetValueWithUnit( this.values.info_padding_bottom ) );
+				}
+
+				if ( !this.isDefault( 'info_padding_left' ) ) {
+				  this.addCssProperty( info, 'padding-left',  _.fusionGetValueWithUnit( this.values.info_padding_left ) );
+				}
+
+				if ( !this.isDefault( 'info_background' ) ) {
+				  this.addCssProperty( info, 'background-color',  this.values.info_background );
+				}
+
+				if ( !this.isDefault( 'info_border_sizes_top' ) ) {
+				  this.addCssProperty( info, 'border-top-width',  _.fusionGetValueWithUnit( this.values.info_border_sizes_top ) );
+				}
+
+				if ( !this.isDefault( 'info_border_sizes_right' ) ) {
+				  this.addCssProperty( info, 'border-right-width',  _.fusionGetValueWithUnit( this.values.info_border_sizes_right ) );
+				}
+
+				if ( !this.isDefault( 'info_border_sizes_bottom' ) ) {
+				  this.addCssProperty( info, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.info_border_sizes_bottom ) );
+				}
+
+				if ( !this.isDefault( 'info_border_sizes_left' ) ) {
+				  this.addCssProperty( info, 'border-left-width',  _.fusionGetValueWithUnit( this.values.info_border_sizes_left ) );
+				}
+
+				if ( !this.isDefault( 'info_border_color' ) ) {
+				  this.addCssProperty( info, 'border-color',  this.values.info_border_color );
+				}
+
+				if ( !this.isDefault( 'info_border_radius_top_left' ) ) {
+				  this.addCssProperty( info, 'border-top-left-radius',  _.fusionGetValueWithUnit( this.values.info_border_radius_top_left ) );
+				}
+
+				if ( !this.isDefault( 'info_border_radius_top_right' ) ) {
+				  this.addCssProperty( info, 'border-top-right-radius',  _.fusionGetValueWithUnit( this.values.info_border_radius_top_right ) );
+				}
+
+				if ( !this.isDefault( 'info_border_radius_bottom_right' ) ) {
+				  this.addCssProperty( info, 'border-bottom-right-radius',  _.fusionGetValueWithUnit( this.values.info_border_radius_bottom_right ) );
+				}
+
+				if ( !this.isDefault( 'info_border_radius_bottom_left' ) ) {
+				  this.addCssProperty( info, 'border-bottom-left-radius',  _.fusionGetValueWithUnit( this.values.info_border_radius_bottom_left ) );
+				}
+
+				description = info + ' .woocommerce-variation-description';
+
+				if ( !this.isDefault( 'info_align' ) ) {
+				  this.addCssProperty( info, 'justify-content',  this.values.info_align );
+
+					direction = jQuery( 'body' ).hasClass( 'rtl' ) ? 'right' : 'left';
+					if ( 'flex-end' === this.values.info_align ) {
+						direction = jQuery( 'body' ).hasClass( 'rtl' ) ? 'left' : 'right';
+					} else if ( 'center' === this.values.info_align ) {
+						direction = 'center';
+					}
+					this.addCssProperty( description, 'text-align', direction );
+				}
+
+				if ( !this.isDefault( 'description_color' ) ) {
+				  this.addCssProperty( description, 'color',  this.values.description_color );
+				}
+
+				if ( !this.isDefault( 'description_font_size' ) ) {
+				  this.addCssProperty( description, 'font-size',  _.fusionGetValueWithUnit( this.values.description_font_size ) );
+				}
+
+				headingStyles = _.fusionGetFontStyle( 'description_typography', values, 'object' );
+				jQuery.each( headingStyles, function( rule, value ) {
+					self.addCssProperty( description, rule, value );
+				} );
+
+				if ( 'after' ===  this.values.description_order ) {
+				  this.addCssProperty( description, 'order', '2' );
+				}
+
+				// Hide old sale price.
+				if ( 'no' === this.values.show_sale ) {
+					this.addCssProperty( info + ' .price del', 'display', 'none' );
+				}
+
+				if ( 'before' ===  this.values.sale_order ) {
+				   this.addCssProperty( info + ' .price del', 'margin-' +  ( ( jQuery( 'body' ).hasClass( 'rtl' ) ) ? 'left' : 'right' ), '0.5em' );
+				} else {
+					this.addCssProperty( info + ' .price', 'flex-direction', 'row-reverse' );
+				  this.addCssProperty( info + ' .price del', 'margin-' +  ( ( jQuery( 'body' ).hasClass( 'rtl' ) ) ? 'right' : 'left' ), '0.5em' );
+				}
+
+				// Price font size.
+				prices = [ info + ' .price', info + ' .price > .amount', info + ' .price ins > .amount'  ];
+				if ( !this.isDefault( 'price_font_size' ) ) {
+				  this.addCssProperty( prices, 'font-size',  this.values.price_font_size );
+				}
+
+				if ( !this.isDefault( 'price_color' ) ) {
+				  this.addCssProperty( prices, 'color',  this.values.price_color );
+				}
+
+				headingStyles = _.fusionGetFontStyle( 'price_typography', values, 'object' );
+				jQuery.each( headingStyles, function( rule, value ) {
+					self.addCssProperty( prices, rule, value );
+				} );
+
+				sales = [ info + ' .price del .amount', info + ' .price del' ];
+				if ( !this.isDefault( 'sale_font_size' ) ) {
+				  this.addCssProperty( sales, 'font-size',  this.values.sale_font_size );
+				}
+
+				if ( !this.isDefault( 'sale_color' ) ) {
+				  this.addCssProperty( sales, 'color',  this.values.sale_color );
+				}
+
+				headingStyles = _.fusionGetFontStyle( 'sale_typography', values, 'object' );
+				jQuery.each( headingStyles, function( rule, value ) {
+					self.addCssProperty( sales, rule, value );
+				} );
+
+				stock = [ this.baseSelector + ' .stock', info + ' .woocommerce-variation-availability' ];
+				if ( !this.isDefault( 'stock_font_size' ) ) {
+				  this.addCssProperty( stock, 'font-size',  this.values.stock_font_size );
+				}
+
+				if ( !this.isDefault( 'stock_color' ) ) {
+				  this.addCssProperty( stock, 'color',  this.values.stock_color );
+				}
+
+				headingStyles = _.fusionGetFontStyle( 'stock_typography', values, 'object' );
+				jQuery.each( headingStyles, function( rule, value ) {
+					self.addCssProperty( stock, rule, value );
+				} );
+
+				variation_clear = this.baseSelector + ' .reset_variations';
+				if ( 'hide' !== this.values.variation_clear ) {
+				  if ( 'absolute' !== this.values.variation_clear ) {
+				    this.addCssProperty( variation_clear, 'position', 'static' );
+				    this.addCssProperty( variation_clear, 'display', 'inline-block' );
+				    this.addCssProperty( variation_clear, 'right', 'initial' );
+				    this.addCssProperty( variation_clear, 'top', 'initial' );
+
+					if ( 'floated' === this.values.variation_layout ) {
+						topMargin    = '' === this.values.clear_margin_top ? '0px' : _.fusionGetValueWithUnit( this.values.clear_margin_top );
+						bottomMargin = '' === this.values.clear_margin_bottom ? '0px' : _.fusionGetValueWithUnit( this.values.clear_margin_bottom );
+						this.addCssProperty( this.baseSelector + ' .variations tr:last-of-type td.label', 'padding-bottom', fusionSanitize.add_css_values( [ this.extras.body_font_size, topMargin, bottomMargin ] ) );
+					}
+				  }
+
+				  if ( ! this.isDefault( 'clear_margin_top' ) ) {
+				    this.addCssProperty( variation_clear, 'margin-top',  _.fusionGetValueWithUnit( this.values.clear_margin_top ) );
+				  }
+
+				  if ( ! this.isDefault( 'clear_margin_right' ) ) {
+				    this.addCssProperty( variation_clear, 'margin-right',  _.fusionGetValueWithUnit( this.values.clear_margin_right ) );
+				  }
+
+				  if ( ! this.isDefault( 'clear_margin_bottom' ) ) {
+				    this.addCssProperty( variation_clear, 'margin-bottom',  _.fusionGetValueWithUnit( this.values.clear_margin_bottom ) );
+				  }
+
+				  if ( ! this.isDefault( 'clear_margin_left' ) ) {
+				    this.addCssProperty( variation_clear, 'margin-left',  _.fusionGetValueWithUnit( this.values.clear_margin_left ) );
+				  }
+
+				  if ( ! this.isDefault( 'clear_color' ) ) {
+				    this.addCssProperty( variation_clear, 'color',  this.values.clear_color );
+				  }
+
+				  if ( ! this.isDefault( 'clear_color_hover' ) ) {
+				    this.addCssProperty( variation_clear + ':hover', 'color',  this.values.clear_color_hover );
+				  }
+
+				} else {
+				  this.addCssProperty( variation_clear, 'display', 'none', true );
+				}
+
+				// Button area alignment and spacing.
+				button_wrapper = this.baseSelector + ' .fusion-button-wrapper';
+
+				// Button alignment.
+				if ( 'stacked' ===  this.values.button_layout ) {
+				  this.addCssProperty( button_wrapper, 'display', 'flex' );
+				  this.addCssProperty( button_wrapper, 'flex-direction', 'column' );
+				  this.addCssProperty( button_wrapper, 'align-items',  this.values.button_align );
+
+				 button_wrapper_quantity = button_wrapper + ' .quantity';
+				  this.addCssProperty( button_wrapper_quantity, 'margin-bottom', '1.2em' );
+				  this.addCssProperty( button_wrapper_quantity, 'margin-right', '0' );
+				} else if ( !this.isDefault( 'button_justify' ) ) {
+					this.addCssProperty( button_wrapper, 'display', 'flex' );
+				  this.addCssProperty( button_wrapper, 'justify-content',  this.values.button_justify );
+				  direction = ( jQuery( 'body' ).hasClass( 'rtl' ) ) ? 'left' : 'right';
+				  this.addCssProperty( button_wrapper + ' .quantity', 'margin-' + direction, '1.2em' );
+				}
+
+				if ( !this.isDefault( 'button_margin_top' ) ) {
+				  this.addCssProperty( button_wrapper, 'margin-top',  _.fusionGetValueWithUnit( this.values.button_margin_top ) );
+				}
+
+				if ( !this.isDefault( 'button_margin_right' ) ) {
+				  this.addCssProperty( button_wrapper, 'margin-right',  _.fusionGetValueWithUnit( this.values.button_margin_right ) );
+				}
+
+				if ( !this.isDefault( 'button_margin_bottom' ) ) {
+				  this.addCssProperty( button_wrapper, 'margin-bottom',  _.fusionGetValueWithUnit( this.values.button_margin_bottom ) );
+				}
+
+				if ( !this.isDefault( 'button_margin_left' ) ) {
+				  this.addCssProperty( button_wrapper, 'margin-left',  _.fusionGetValueWithUnit( this.values.button_margin_left ) );
+				}
+
+				if ( !this.isDefault( 'quantity_style' ) ) {
+				  quantity_input = '.fusion-body #main ' +  this.baseSelector + ' .quantity input[type="number"].qty';
+				  quantity_buttons = '.fusion-body #main ' +  this.baseSelector + ' .quantity input[type="button"]';
+				  quantity_both = [ quantity_input, quantity_buttons ];
+				  // Quantity width.
+				  width = '36px';
+				  if (  !  this.isDefault( 'quantity_width' ) ) {
+				    width =  _.fusionGetValueWithUnit( this.values.quantity_width );
+				    this.addCssProperty( quantity_input, 'width', width );
+				  }
+
+				  height = '36px';
+				  if (  !  this.isDefault( 'quantity_height' ) ) {
+				    height =  _.fusionGetValueWithUnit( this.values.quantity_height );
+				    this.addCssProperty( quantity_both, 'height', height );
+				    this.addCssProperty( quantity_buttons, 'width', height );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_width' ) ||   !  this.isDefault( 'quantity_height' ) ) {
+				    this.addCssProperty( this.baseSelector + ' .quantity', 'width', 'calc( ' + width + ' + ' + height + ' + ' + height + ' )' );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_radius_top_left' ) ) {
+				    this.addCssProperty( this.baseSelector + ' .quantity .minus', 'border-top-left-radius',  _.fusionGetValueWithUnit( this.values.quantity_radius_top_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_radius_bottom_left' ) ) {
+				    this.addCssProperty( this.baseSelector + ' .quantity .minus', 'border-bottom-left-radius',  _.fusionGetValueWithUnit( this.values.quantity_radius_bottom_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_radius_top_right' ) ) {
+				    this.addCssProperty( this.baseSelector + ' .quantity .plus', 'border-top-right-radius',  _.fusionGetValueWithUnit( this.values.quantity_radius_top_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_radius_bottom_left' ) ) {
+				    this.addCssProperty( this.baseSelector + ' .quantity .plus', 'border-bottom-right-radius',  _.fusionGetValueWithUnit( this.values.quantity_radius_bottom_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_font_size' ) ) {
+				    quantity_font = [ quantity_input, quantity_buttons, this.baseSelector + ' .quantity' ];
+				    this.addCssProperty( quantity_font, 'font-size',  _.fusionGetValueWithUnit( this.values.quantity_font_size ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_color' ) ) {
+				    this.addCssProperty( quantity_input, 'color',  this.values.quantity_color );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_background' ) ) {
+				    this.addCssProperty( quantity_input, 'background-color',  this.values.quantity_background );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_border_sizes_top' ) ) {
+				    this.addCssProperty( quantity_input, 'border-top-width',  _.fusionGetValueWithUnit( this.values.quantity_border_sizes_top ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_border_sizes_right' ) ) {
+				    this.addCssProperty( quantity_input, 'border-right-width',  _.fusionGetValueWithUnit( this.values.quantity_border_sizes_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_border_sizes_bottom' ) ) {
+				    this.addCssProperty( quantity_input, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.quantity_border_sizes_bottom ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_border_sizes_left' ) ) {
+				    this.addCssProperty( quantity_input, 'border-left-width',  _.fusionGetValueWithUnit( this.values.quantity_border_sizes_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'quantity_border_color' ) ) {
+				    this.addCssProperty( quantity_input, 'border-color',  this.values.quantity_border_color );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_border_sizes_top' ) ) {
+				    this.addCssProperty( quantity_buttons, 'border-top-width',  _.fusionGetValueWithUnit( this.values.qbutton_border_sizes_top ) );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_border_sizes_right' ) ) {
+				    this.addCssProperty( quantity_buttons, 'border-right-width',  _.fusionGetValueWithUnit( this.values.qbutton_border_sizes_right ) );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_border_sizes_bottom' ) ) {
+				    this.addCssProperty( quantity_buttons, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.qbutton_border_sizes_bottom ) );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_border_sizes_left' ) ) {
+				    this.addCssProperty( quantity_buttons, 'border-left-width',  _.fusionGetValueWithUnit( this.values.qbutton_border_sizes_left ) );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_color' ) ) {
+				    this.addCssProperty( quantity_buttons, 'color',  this.values.qbutton_color );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_background' ) ) {
+				    this.addCssProperty( quantity_buttons, 'background-color',  this.values.qbutton_background );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_border_color' ) ) {
+				    this.addCssProperty( quantity_buttons, 'border-color',  this.values.qbutton_border_color );
+				  }
+
+				  hover_buttons = quantity_buttons + ':hover';
+				  // Quantity button hover text color.
+				  if (  !  this.isDefault( 'qbutton_color_hover' ) ) {
+				    this.addCssProperty( hover_buttons, 'color',  this.values.qbutton_color_hover );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_background_hover' ) ) {
+				    this.addCssProperty( hover_buttons, 'background-color',  this.values.qbutton_background_hover );
+				  }
+
+				  if (  !  this.isDefault( 'qbutton_border_color_hover' ) ) {
+				    this.addCssProperty( hover_buttons, 'border-color',  this.values.qbutton_border_color_hover );
+				  }
+
+				}
+
+				if ( !this.isDefault( 'button_style' ) ) {
+				  button = '.fusion-body ' +  this.baseSelector + ' .fusion-button-wrapper .button';
+				  // Button size.
+				  if (  !  this.isDefault( 'button_size' ) ) {
+					button_size_map = {
+						small: {
+							padding: '9px 20px',
+							line_height: '14px',
+							font_size: '12px'
+						},
+						medium: {
+							padding: '11px 23px',
+							line_height: '16px',
+							font_size: '13px'
+						},
+						large: {
+							padding: '13px 29px',
+							line_height: '17px',
+							font_size: '14px'
+						},
+						xlarge: {
+							padding: '17px 40px',
+							line_height: '21px',
+							font_size: '18px'
+						}
+					};
+
+					if ( 'object' === typeof button_size_map[ this.values.button_size ] ) {
+				      button_dimensions = button_size_map[ this.values.button_size ];
+				      this.addCssProperty( button, 'padding', button_dimensions.padding );
+				      this.addCssProperty( button, 'line-height', button_dimensions.line_height );
+				      this.addCssProperty( button, 'font-size', button_dimensions.font_size );
+				    }
+
+				  }
+
+				  if (  !  this.isDefault( 'button_stretch' ) ) {
+				    this.addCssProperty( button, 'flex', '1' );
+				    this.addCssProperty( button, 'width', '100%' );
+				  }
+
+				  if (  !  this.isDefault( 'button_border_width' ) ) {
+				    this.addCssProperty( button, 'border-width',  _.fusionGetValueWithUnit( this.values.button_border_width ) );
+				  }
+
+				  if (  !  this.isDefault( 'button_color' ) ) {
+				    this.addCssProperty( button, 'color',  this.values.button_color );
+				  }
+
+				  if ( ( 'string' === typeof this.params.button_gradient_top && '' !==  this.params.button_gradient_top ) ||  ( 'string' === typeof this.params.button_gradient_bottom && '' !==  this.params.button_gradient_bottom ) ) {
+				    this.addCssProperty( button, 'background',  this.values.button_gradient_top );
+				    this.addCssProperty( button, 'background-image', 'linear-gradient( to top, ' +  this.values.button_gradient_bottom + ', ' +  this.values.button_gradient_top + ' )' );
+				  }
+
+				  if (  !  this.isDefault( 'button_border_color' ) ) {
+				    this.addCssProperty( button, 'border-color',  this.values.button_border_color );
+				  }
+
+				  button_hover = button + ':hover';
+				  // Button hover text color
+				  if (  !  this.isDefault( 'button_color_hover' ) ) {
+				    this.addCssProperty( button_hover, 'color',  this.values.button_color_hover );
+				  }
+
+				  if ( ( 'string' === typeof this.params.button_gradient_top_hover && '' !== this.params.button_gradient_top_hover ) ||  ( 'string' === typeof this.params.button_gradient_bottom_hover && '' !== this.params.button_gradient_bottom_hover ) ) {
+				    this.addCssProperty( button_hover, 'background',  this.values.button_gradient_top_hover );
+				    this.addCssProperty( button_hover, 'background-image', 'linear-gradient( to top, ' +  this.values.button_gradient_bottom_hover + ', ' +  this.values.button_gradient_top_hover + ' )' );
+				  }
+
+				  if ( ! this.isDefault( 'button_border_color_hover' ) ) {
+				    this.addCssProperty( button_hover, 'border-color',  this.values.button_border_color_hover );
+				  }
+				}
+
+				css = this.parseCSS();
+				return ( css ) ? '<style>' + css + '</style>' : '';
+			}
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Stock Component View.
+		FusionPageBuilder.fusion_tb_woo_stock = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				// Validate values.
+				this.validateValues( atts.values );
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Modifies the values.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {void}
+			 */
+			validateValues: function( values ) {
+				values.stock_font_size = _.fusionValidateAttrValue( values.stock_font_size, 'px' );
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-stock-tb fusion-woo-stock-tb-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( '' !== values.margin_top ) {
+					attr.style += 'margin-top:' + values.margin_top + ';';
+				}
+
+				if ( '' !== values.margin_right ) {
+					attr.style += 'margin-right:' + values.margin_right + ';';
+				}
+
+				if ( '' !== values.margin_bottom ) {
+					attr.style += 'margin-bottom:' + values.margin_bottom + ';';
+				}
+
+				if ( '' !== values.margin_left ) {
+					attr.style += 'margin-left:' + values.margin_left + ';';
+				}
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-stock-tb' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.woo_stock ) {
+					output = atts.query_data.woo_stock;
+				}
+
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var styles = '<style type="text/css">';
+
+				if ( '' !== values.stock_font_size ) {
+					styles += '.fusion-woo-stock-tb.fusion-woo-stock-tb-' + this.model.get( 'cid' ) + ' p.stock{ font-size: ' + values.stock_font_size + '}';
+				}
+
+				if ( '' !== values.stock_color ) {
+					styles += '.fusion-woo-stock-tb.fusion-woo-stock-tb-' + this.model.get( 'cid' ) + ' p.stock{ color: ' + values.stock_color + '}';
+				}
+
+				styles += '</style>';
+
+				return styles;
+			}
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Rating Component View.
+		FusionPageBuilder.fusion_tb_woo_rating = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				// Validate values.
+				this.validateValues( atts.values );
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Modifies the values.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {void}
+			 */
+			validateValues: function( values ) {
+				values.icon_size       = _.fusionValidateAttrValue( values.icon_size, 'px' );
+				values.count_font_size = _.fusionValidateAttrValue( values.count_font_size, 'px' );
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-rating-tb fusion-woo-rating-tb-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( '' !== values.margin_top ) {
+					attr.style += 'margin-top:' + values.margin_top + ';';
+				}
+
+				if ( '' !== values.margin_right ) {
+					attr.style += 'margin-right:' + values.margin_right + ';';
+				}
+
+				if ( '' !== values.margin_bottom ) {
+					attr.style += 'margin-bottom:' + values.margin_bottom + ';';
+				}
+
+				if ( '' !== values.margin_left ) {
+					attr.style += 'margin-left:' + values.margin_left + ';';
+				}
+
+				if ( 'yes' !== values.show_count ) {
+					attr[ 'class' ] += ' hide-count';
+				}
+
+				if ( '' !== values.alignment ) {
+					attr[ 'class' ] += ' align-' + values.alignment;
+				}
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-rating-tb' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.woo_rating ) {
+					output = atts.query_data.woo_rating;
+				}
+
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var styles = '<style type="text/css">';
+
+				if ( '' !== values.icon_size ) {
+					styles += '.fusion-woo-rating-tb.fusion-woo-rating-tb-' + this.model.get( 'cid' ) + ' .woocommerce-product-rating .star-rating {';
+					styles += 'font-size:' + values.icon_size + ';}';
+				}
+
+				if ( '' !== values.icon_color ) {
+					styles += '.fusion-woo-rating-tb.fusion-woo-rating-tb-' + this.model.get( 'cid' ) + ' .woocommerce-product-rating .star-rating:before,';
+					styles += '.fusion-woo-rating-tb.fusion-woo-rating-tb-' + this.model.get( 'cid' ) + ' .woocommerce-product-rating .star-rating span:before {';
+					styles += 'color:' + values.icon_color + ';}';
+				}
+
+				styles += '.fusion-woo-rating-tb.fusion-woo-rating-tb-' + this.model.get( 'cid' ) + ' .woocommerce-product-rating a.woocommerce-review-link {';
+
+				if ( '' !== values.count_font_size ) {
+					styles += 'font-size:' + values.count_font_size + ';';
+				}
+
+				if ( '' !== values.count_color ) {
+					styles += 'color:' + values.count_color + ';';
+				}
+
+				styles += '}';
+
+				if ( '' !== values.count_hover_color ) {
+					styles += '.fusion-woo-rating-tb.fusion-woo-rating-tb-' + this.model.get( 'cid' ) + ' .woocommerce-product-rating a.woocommerce-review-link:hover {';
+					styles += 'color:' + values.count_hover_color + ';}';
+				}
+
+				styles += '</style>';
+
+				return styles;
+			}
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Rating Component View.
+		FusionPageBuilder.fusion_tb_woo_short_description = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				this.values = atts.values;
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-short-description-tb fusion-woo-short-description-tb-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-short-description-tb' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.woo_short_description ) {
+					output = atts.query_data.woo_short_description;
+				}
+
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var css,
+					self = this,
+					textStyles = {};
+
+				this.baseSelector = '.fusion-woo-short-description-tb.fusion-woo-short-description-tb-' + this.model.get( 'cid' );
+				this.dynamic_css  = {};
+
+				// Text styles.
+				if ( ! this.isDefault( 'text_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .woocommerce-product-details__short-description', 'color', values.text_color );
+				}
+
+				if ( ! this.isDefault( 'text_font_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' .woocommerce-product-details__short-description', 'font-size',  _.fusionGetValueWithUnit( values.text_font_size ) );
+				}
+
+				// Text typography styles.
+				textStyles = _.fusionGetFontStyle( 'text_font', values, 'object' );
+				jQuery.each( textStyles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector + ' .woocommerce-product-details__short-description', rule, value );
+				} );
+
+				jQuery.each( [ 'top', 'right', 'bottom', 'left' ], function( index, side ) {
+					var marginName      = 'margin_' + side;
+
+					// Element margin.
+					if ( '' !==  values[ marginName ] ) {
+						self.addCssProperty( self.baseSelector, 'margin-' + side,  _.fusionGetValueWithUnit( values[ marginName ] ) );
+					}
+				} );
+
+				css = this.parseCSS();
+
+				return ( css ) ? '<style>' + css + '</style>' : '';
+			}
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Rating Component View.
+		FusionPageBuilder.fusion_tb_woo_reviews = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Runs during render() call.
+			 *
+			 * @since 2.0
+			 * @return {void}
+			 */
+			onRender: function() {
+				var $this = this;
+
+				jQuery( window ).on( 'load', function() {
+					$this._refreshJs();
+				} );
+			},
+
+			refreshJs: function() {
+				jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( 'body' ).find( '.fusion-builder-live-element[data-cid="' + this.model.get( 'cid' ) + '"] ' ).find( '.comment-form-rating select[name="rating"]:visible' ).trigger( 'init' );
+			},
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				this.values = atts.values;
+				this.params = this.model.get( 'params' );
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-reviews-tb fusion-woo-reviews-tb-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( 'no' == values.show_tab_title ) {
+					attr[ 'class' ] += ' woo-reviews-hide-heading';
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-reviews-tb' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.woo_reviews ) {
+					output = atts.query_data.woo_reviews;
+				}
+
+				return this.disableInlineScripts( output );
+			},
+
+			/**
+			 * Disables inline scripts.
+			 *
+			 * @since  3.2
+			 * @param  {String} output - The output string.
+			 * @return {String}
+			 */
+			disableInlineScripts: function( output ) {
+				if ( -1 !== output.indexOf( '<script' ) && -1 !== output.indexOf( '</script>' ) ) {
+					output = output.replace( '<script', '<!--<script' ).replace( '</script>', '</script>-->' );
+				}
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var self = this,
+					textStyles = {},
+					css = '',
+					button,
+					button_hover,
+					button_size_map,
+					button_dimensions;
+
+				this.baseSelector = '.fusion-woo-reviews-tb.fusion-woo-reviews-tb-' + this.model.get( 'cid' );
+				this.dynamic_css  = {};
+
+				jQuery.each( [ 'top', 'right', 'bottom', 'left' ], function( index, side ) {
+					var marginName = 'margin_' + side;
+
+					// Element margin.
+					if ( '' !==  values[ marginName ] ) {
+						self.addCssProperty( self.baseSelector, 'margin-' + side,  _.fusionGetValueWithUnit( values[ marginName ] ) );
+					}
+				} );
+
+				// Text styles.
+				if ( ! this.isDefault( 'text_color' ) ) {
+					this.addCssProperty( this.baseSelector, 'color',  this.values.text_color );
+					this.addCssProperty( '#wrapper ' + this.baseSelector + ' .meta', 'color',  this.values.text_color );
+					this.addCssProperty( [ this.baseSelector + ' .stars a', this.baseSelector + ' .stars a:after' ], 'color',  this.values.text_color );
+				}
+
+				if ( ! this.isDefault( 'text_font_size' ) ) {
+					this.addCssProperty( this.baseSelector, 'font-size',  _.fusionGetValueWithUnit( this.values.text_font_size ) );
+				}
+
+				// Text typography styles.
+				textStyles = _.fusionGetFontStyle( 'text_font', values, 'object' );
+				jQuery.each( textStyles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector, rule, value );
+				} );
+
+				// Border.
+				if ( ! this.isDefault( 'border_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' #reviews li .comment-text', 'border-width',  this.values.border_size + 'px' );
+				}
+
+				if ( ! this.isDefault( 'border_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' #reviews li .comment-text', 'border-color',  this.values.border_color );
+				}
+
+				// Stars color.
+				if ( ! this.isDefault( 'stars_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .comment-text .star-rating:before', 'color',  this.values.stars_color );
+					this.addCssProperty( this.baseSelector + ' .comment-text .star-rating span:before', 'color',  this.values.stars_color );
+				}
+
+				if ( ! this.isDefault( 'rating_box_bg_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .stars > span > a', 'background-color',  this.values.rating_box_bg_color );
+				}
+
+				if ( ! this.isDefault( 'rating_box_active_bg_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .stars > span > a:hover', 'background-color',  this.values.rating_box_active_bg_color );
+					this.addCssProperty( this.baseSelector + ' .stars > span > a.active', 'background-color',  this.values.rating_box_active_bg_color );
+				}
+
+				if ( !this.isDefault( 'button_style' ) ) {
+					button = '.fusion-body ' +  this.baseSelector + ' #reviews input#submit.submit';
+					// Button size.
+					if (  !  this.isDefault( 'button_size' ) ) {
+					  button_size_map = {
+						  small: {
+							  padding: '9px 20px',
+							  line_height: '14px',
+							  font_size: '12px'
+						  },
+						  medium: {
+							  padding: '11px 23px',
+							  line_height: '16px',
+							  font_size: '13px'
+						  },
+						  large: {
+							  padding: '13px 29px',
+							  line_height: '17px',
+							  font_size: '14px'
+						  },
+						  xlarge: {
+							  padding: '17px 40px',
+							  line_height: '21px',
+							  font_size: '18px'
+						  }
+					  };
+
+					  if ( 'object' === typeof button_size_map[ this.values.button_size ] ) {
+						button_dimensions = button_size_map[ this.values.button_size ];
+						this.addCssProperty( button, 'padding', button_dimensions.padding );
+						this.addCssProperty( button, 'line-height', button_dimensions.line_height );
+						this.addCssProperty( button, 'font-size', button_dimensions.font_size );
+					  }
+
+					}
+
+					if (  !  this.isDefault( 'button_stretch' ) ) {
+					  this.addCssProperty( button, 'flex', '1' );
+					  this.addCssProperty( button, 'width', '100%' );
+					}
+
+					if (  !  this.isDefault( 'button_border_width' ) ) {
+					  this.addCssProperty( button, 'border-width', _.fusionGetValueWithUnit( this.values.button_border_width ) );
+					  this.addCssProperty( button, 'border-style', 'solid' );
+					}
+
+					if (  !  this.isDefault( 'button_color' ) ) {
+					  this.addCssProperty( button, 'color',  this.values.button_color );
+					}
+
+					if ( ( 'string' === typeof this.params.button_gradient_top && '' !==  this.params.button_gradient_top ) ||  ( 'string' === typeof this.params.button_gradient_bottom && '' !==  this.params.button_gradient_bottom ) ) {
+					  this.addCssProperty( button, 'background', this.values.button_gradient_top );
+					  this.addCssProperty( button, 'background-image', 'linear-gradient( to top, ' +  this.values.button_gradient_bottom + ', ' +  this.values.button_gradient_top + ' )' );
+					}
+
+					if (  !  this.isDefault( 'button_border_color' ) ) {
+					  this.addCssProperty( button, 'border-color',  this.values.button_border_color );
+					}
+
+					button_hover = button + ':hover';
+					// Button hover text color
+					if (  !  this.isDefault( 'button_color_hover' ) ) {
+					  this.addCssProperty( button_hover, 'color',  this.values.button_color_hover );
+					}
+
+					if ( ( 'string' === typeof this.params.button_gradient_top_hover && '' !== this.params.button_gradient_top_hover ) ||  ( 'string' === typeof this.params.button_gradient_bottom_hover && '' !== this.params.button_gradient_bottom_hover ) ) {
+					  this.addCssProperty( button_hover, 'background',  this.values.button_gradient_top_hover );
+					  this.addCssProperty( button_hover, 'background-image', 'linear-gradient( to top, ' +  this.values.button_gradient_bottom_hover + ', ' +  this.values.button_gradient_top_hover + ' )' );
+					}
+
+					if ( ! this.isDefault( 'button_border_color_hover' ) ) {
+					  this.addCssProperty( button_hover, 'border-color',  this.values.button_border_color_hover );
+					}
+				  }
+
+				css = this.parseCSS();
+
+				return ( css ) ? '<style>' + css + '</style>' : '';
+			}
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Rating Component View.
+		FusionPageBuilder.fusion_tb_woo_additional_info = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				// Validate values.
+				this.values = atts.values;
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-additional-info-tb fusion-woo-additional-info-tb-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-additional-info-tb' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.woo_additional_info ) {
+					output = atts.query_data.woo_additional_info;
+				}
+
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var self = this,
+					css = '',
+					cellSelectors,
+					headingStyles = {},
+					textStyles = {};
+
+				this.baseSelector = '.fusion-woo-additional-info-tb.fusion-woo-additional-info-tb-' + this.model.get( 'cid' );
+				this.dynamic_css  = {};
+
+				// Heading styles.
+				if ( ! this.isDefault( 'heading_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .shop_attributes tr th', 'color', values.heading_color );
+				}
+
+				if ( ! this.isDefault( 'heading_font_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' .shop_attributes tr th', 'font-size',  _.fusionGetValueWithUnit( values.heading_font_size ) );
+				}
+
+				// Heading typography styles.
+				headingStyles = _.fusionGetFontStyle( 'heading_font', values, 'object' );
+				jQuery.each( headingStyles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector + ' .shop_attributes tr th', rule, value );
+				} );
+
+				// Text styles.
+				if ( ! this.isDefault( 'text_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .shop_attributes tr td', 'color', values.text_color );
+				}
+
+				if ( ! this.isDefault( 'text_font_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' .shop_attributes tr td', 'font-size',  _.fusionGetValueWithUnit( values.text_font_size ) );
+				}
+
+				// Text typography styles.
+				textStyles = _.fusionGetFontStyle( 'text_font', values, 'object' );
+				jQuery.each( textStyles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector + ' .shop_attributes tr td', rule, value );
+				} );
+
+				// Table Border styles.
+				if ( ! this.isDefault( 'border_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .shop_attributes tr', 'border-color',  values.border_color );
+				}
+
+				// Cell background.
+				if ( ! this.isDefault( 'table_cell_backgroundcolor' ) ) {
+					this.addCssProperty( this.baseSelector + ' .shop_attributes td', 'background-color',  values.table_cell_backgroundcolor );
+				}
+
+				// Heading background.
+				if ( ! this.isDefault( 'heading_cell_backgroundcolor' ) ) {
+					this.addCssProperty( this.baseSelector + ' .shop_attributes th', 'background-color',  values.heading_cell_backgroundcolor );
+				}
+
+				// Table cell selectors.
+				cellSelectors = [
+					this.baseSelector + ' .shop_attributes tr th',
+					this.baseSelector + ' .shop_attributes tr td'
+				];
+
+				// Get padding.
+				jQuery.each( [ 'top', 'right', 'bottom', 'left' ], function( index, side ) {
+					var cellPaddingName = 'cell_padding_' + side,
+						marginName      = 'margin_' + side;
+
+
+					// Add content padding to style.
+					if ( '' !==  values[ cellPaddingName ] ) {
+						self.addCssProperty( cellSelectors, 'padding-' + side,  _.fusionGetValueWithUnit( values[ cellPaddingName ] ) );
+					}
+
+					// Element margin.
+					if ( '' !==  values[ marginName ] ) {
+						self.addCssProperty( self.baseSelector, 'margin-' + side,  _.fusionGetValueWithUnit( values[ marginName ] ) );
+					}
+				} );
+
+				css = this.parseCSS();
+
+				return ( css ) ? '<style>' + css + '</style>' : '';
+			}
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Rating Component View.
+		FusionPageBuilder.fusion_tb_woo_tabs = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Runs during render() call.
+			 *
+			 * @since 2.0
+			 * @return {void}
+			 */
+			onRender: function() {
+				var $this = this;
+
+				jQuery( window ).on( 'load', function() {
+					$this._refreshJs();
+				} );
+			},
+
+			refreshJs: function() {
+				jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( 'body' ).find( '.fusion-builder-live-element[data-cid="' + this.model.get( 'cid' ) + '"] ' ).find( '.wc-tabs-wrapper, .woocommerce-tabs, .comment-form-rating select[name="rating"]:visible' ).trigger( 'init' );
+			},
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				this.values = atts.values;
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-tabs-tb fusion-woo-tabs-tb-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( 'horizontal' === values.layout ) {
+					attr[ 'class' ] += ' woo-tabs-horizontal';
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-tabs-tb' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.woo_tabs ) {
+					output = atts.query_data.woo_tabs;
+				}
+
+				return this.disableInlineScripts( output );
+			},
+
+			/**
+			 * Disables inline scripts.
+			 *
+			 * @since  3.2
+			 * @param  {String} output - The output string.
+			 * @return {String}
+			 */
+			disableInlineScripts: function( output ) {
+				if ( -1 !== output.indexOf( '<script' ) && -1 !== output.indexOf( '</script>' ) ) {
+					output = output.replace( '<script', '<!--<script' ).replace( '</script>', '</script>-->' );
+				}
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var self = this,
+					titleSelectors,
+					css,
+					headingStyles = {},
+					textStyles = {};
+
+				this.baseSelector = '.fusion-woo-tabs-tb.fusion-woo-tabs-tb-' + this.model.get( 'cid' );
+				this.dynamic_css  = {};
+
+				jQuery.each( [ 'top', 'right', 'bottom', 'left' ], function( index, side ) {
+					var marginName = 'margin_' + side;
+
+					// Element margin.
+					if ( '' !==  values[ marginName ] ) {
+						self.addCssProperty( self.baseSelector, 'margin-' + side,  _.fusionGetValueWithUnit( values[ marginName ] ) );
+					}
+				} );
+
+				if ( ! this.isDefault( 'backgroundcolor' ) ) {
+					this.addCssProperty( this.baseSelector + ' .wc-tabs > li.active > a', 'background-color',  this.values.backgroundcolor );
+					this.addCssProperty( this.baseSelector + ' .wc-tabs > li > a:hover', 'background-color',  this.values.backgroundcolor );
+					this.addCssProperty( this.baseSelector + ' .woocommerce-Tabs-panel', 'background-color',  this.values.backgroundcolor );
+				}
+
+				if ( ! this.isDefault( 'inactivebackgroundcolor' ) ) {
+					this.addCssProperty( this.baseSelector + ' .wc-tabs > li > a', 'background-color',  this.values.inactivebackgroundcolor );
+				}
+
+				if ( ! this.isDefault( 'active_nav_text_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .wc-tabs > li.active > a', 'color',  this.values.active_nav_text_color );
+					this.addCssProperty( this.baseSelector + ' .wc-tabs > li > a:hover', 'color',  this.values.active_nav_text_color );
+				}
+
+				if ( ! this.isDefault( 'inactive_nav_text_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .wc-tabs > li > a', 'color',  this.values.inactive_nav_text_color );
+				}
+
+				if ( ! this.isDefault( 'bordercolor' ) ) {
+
+					if ( 'horizontal' === values.layout ) {
+						this.addCssProperty( this.baseSelector + '.woo-tabs-horizontal .woocommerce-tabs > .tabs .active', 'border-color',  this.values.bordercolor );
+						this.addCssProperty( this.baseSelector + '.woo-tabs-horizontal .woocommerce-tabs > .tabs', 'border-color',  this.values.bordercolor );
+					} else {
+						this.addCssProperty( this.baseSelector + ' .woocommerce-tabs .tabs li a', 'border-color',  this.values.bordercolor );
+					}
+					this.addCssProperty( this.baseSelector + ' .woocommerce-tabs .panel', 'border-color',  this.values.bordercolor );
+					this.addCssProperty( this.baseSelector + ' .woocommerce-tabs .panel .shop_attributes tr', 'border-color',  this.values.bordercolor );
+				}
+
+				// Text styles.
+				if ( ! this.isDefault( 'text_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .woocommerce-tabs .panel', 'color',  this.values.text_color );
+					this.addCssProperty( this.baseSelector + ' .woocommerce-tabs .panel .shop_attributes th', 'color',  this.values.text_color );
+					this.addCssProperty( '#wrapper ' + this.baseSelector + ' .meta', 'color',  this.values.text_color );
+					this.addCssProperty( [ this.baseSelector + ' .stars a', this.baseSelector + ' .stars a:after' ], 'color',  this.values.text_color );
+				}
+
+				if ( ! this.isDefault( 'text_font_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' .woocommerce-tabs .panel', 'font-size',  _.fusionGetValueWithUnit( this.values.text_font_size ) );
+				}
+
+				// Text typography styles.
+				textStyles = _.fusionGetFontStyle( 'text_font', values, 'object' );
+				jQuery.each( textStyles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector + ' .woocommerce-tabs .panel', rule, value );
+				} );
+
+				// Title styles.
+				titleSelectors = [
+					'#wrapper ' + this.baseSelector + ' #tab-reviews #reviews .woocommerce-Reviews-title',
+					'#wrapper ' + this.baseSelector + ' .woocommerce-Tabs-panel .fusion-woocommerce-tab-title'
+				];
+				if ( ! this.isDefault( 'title_color' ) ) {
+					this.addCssProperty( titleSelectors, 'color',  this.values.title_color );
+				}
+
+				if ( ! this.isDefault( 'title_font_size' ) ) {
+					this.addCssProperty( titleSelectors, 'font-size', _.fusionGetValueWithUnit( this.values.title_font_size ) );
+				}
+
+				// Title typography styles.
+				headingStyles = _.fusionGetFontStyle( 'title_font', values, 'object' );
+				jQuery.each( headingStyles, function( rule, value ) {
+					self.addCssProperty( titleSelectors, rule, value );
+				} );
+
+				if ( 'vertical' === this.values.layout && ! this.isDefault( 'nav_content_space' ) ) {
+					this.addCssProperty( this.baseSelector + ' .woocommerce-tabs .panel', 'margin-left', 'calc(220px + ' + _.fusionGetValueWithUnit( this.values.nav_content_space ) + ')' );
+				}
+
+				// Stars color.
+				if ( ! this.isDefault( 'stars_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .comment-text .star-rating:before', 'color',  this.values.stars_color );
+					this.addCssProperty( this.baseSelector + ' .comment-text .star-rating span:before', 'color',  this.values.stars_color );
+				}
+
+				// Get padding.
+				jQuery.each( [ 'top', 'right', 'bottom', 'left' ], function( index, padding ) {
+					var content_padding_name = 'content_padding_' + padding,
+						nav_padding_name = 'nav_padding_' + padding;
+
+					// Add content padding to style.
+					if ( '' !==  self.values[ content_padding_name ] ) {
+						self.addCssProperty( self.baseSelector + ' .woocommerce-tabs .panel', 'padding-' + padding,  _.fusionGetValueWithUnit( self.values[ content_padding_name ] ) );
+					}
+
+					if ( '' !==  self.values[ nav_padding_name ] ) {
+						self.addCssProperty( self.baseSelector + ' .woocommerce-tabs .tabs li a', 'padding-' + padding,  _.fusionGetValueWithUnit( self.values[ nav_padding_name ] ) );
+					}
+				} );
+
+				css = this.parseCSS();
+				return ( css ) ? '<style>' + css + '</style>' : '';
+			}
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Notices Component View.
+		FusionPageBuilder.fusion_tb_woo_notices = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				this.values = atts.values;
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock( atts.values );
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-notices-tb fusion-woo-notices-tb-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( '' !== values.alignment ) {
+					attr[ 'class' ] += ' alignment-text-' + values.alignment;
+				}
+
+				if ( '' !== values.show_button ) {
+					attr[ 'class' ] += ' show-button-' + values.show_button;
+				}
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-notices-tb' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.woo_notices ) {
+					output = atts.query_data.woo_notices;
+				}
+
+				return output;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var css, selectors, selectorMessage, selectorError, selectorNotices;
+
+				this.baseSelector = '.fusion-woo-notices-tb.fusion-woo-notices-tb-' +  this.model.get( 'cid' );
+				this.dynamic_css  = {};
+				selectorMessage = [
+					this.baseSelector + ' .woocommerce-info',
+					this.baseSelector + ' .woocommerce-message'
+				];
+				selectorError = [ this.baseSelector + ' .woocommerce-error li' ];
+				selectorNotices = _.union( selectorMessage, selectorError );
+
+				// Margin styles.
+				if ( ! this.isDefault( 'margin_top' ) ) {
+				  this.addCssProperty( selectorNotices, 'margin-top',  _.fusionGetValueWithUnit( values.margin_top ) );
+				}
+				if ( ! this.isDefault( 'margin_right' ) ) {
+				  this.addCssProperty( selectorNotices, 'margin-right',  _.fusionGetValueWithUnit( values.margin_right ) );
+				}
+				if ( ! this.isDefault( 'margin_bottom' ) ) {
+				  this.addCssProperty( selectorNotices, 'margin-bottom',  _.fusionGetValueWithUnit( values.margin_bottom ) );
+				}
+				if ( ! this.isDefault( 'margin_left' ) ) {
+				  this.addCssProperty( selectorNotices, 'margin-left',  _.fusionGetValueWithUnit( values.margin_left ) );
+				}
+
+				// Padding styles.
+				if ( ! this.isDefault( 'padding_top' ) ) {
+				  this.addCssProperty( selectorNotices, 'padding-top',  _.fusionGetValueWithUnit( values.padding_top ) );
+				}
+				if ( ! this.isDefault( 'padding_right' ) ) {
+				  this.addCssProperty( selectorNotices, 'padding-right',  _.fusionGetValueWithUnit( values.padding_right ) );
+				}
+				if ( ! this.isDefault( 'padding_bottom' ) ) {
+				  this.addCssProperty( selectorNotices, 'padding-bottom',  _.fusionGetValueWithUnit( values.padding_bottom ) );
+				}
+				if ( ! this.isDefault( 'padding_left' ) ) {
+				  this.addCssProperty( selectorNotices, 'padding-left',  _.fusionGetValueWithUnit( values.padding_left ) );
+				}
+
+				if ( ! this.isDefault( 'font_size' ) ) {
+					this.addCssProperty( selectorNotices, 'font-size', values.font_size );
+				}
+
+				if ( ! this.isDefault( 'font_color' ) ) {
+					this.addCssProperty( selectorNotices, 'color', values.font_color );
+				}
+
+				// Border styles.
+				if ( ! this.isDefault( 'border_sizes_top' ) ) {
+				  this.addCssProperty( selectorNotices, 'border-top-width',  _.fusionGetValueWithUnit( values.border_sizes_top ) );
+				}
+				if ( ! this.isDefault( 'border_sizes_right' ) ) {
+				  this.addCssProperty( selectorNotices, 'border-right-width',  _.fusionGetValueWithUnit( values.border_sizes_right ) );
+				}
+				if ( ! this.isDefault( 'border_sizes_bottom' ) ) {
+				  this.addCssProperty( selectorNotices, 'border-bottom-width',  _.fusionGetValueWithUnit( values.border_sizes_bottom ) );
+				}
+				if ( ! this.isDefault( 'border_sizes_left' ) ) {
+				  this.addCssProperty( selectorNotices, 'border-left-width',  _.fusionGetValueWithUnit( values.border_sizes_left ) );
+				}
+				if ( ! this.isDefault( 'border_radius_top_left' ) ) {
+				  this.addCssProperty( selectorNotices, 'border-top-left-radius',  _.fusionGetValueWithUnit( values.border_radius_top_left ) );
+				}
+				if ( ! this.isDefault( 'border_radius_top_right' ) ) {
+				  this.addCssProperty( selectorNotices, 'border-top-right-radius',  _.fusionGetValueWithUnit( values.border_radius_top_right ) );
+				}
+				if ( ! this.isDefault( 'border_radius_bottom_right' ) ) {
+				  this.addCssProperty( selectorNotices, 'border-bottom-right-radius',  _.fusionGetValueWithUnit( values.border_radius_bottom_right ) );
+				}
+				if ( ! this.isDefault( 'border_radius_bottom_left' ) ) {
+				  this.addCssProperty( selectorNotices, 'border-bottom-left-radius',  _.fusionGetValueWithUnit( values.border_radius_bottom_left ) );
+				}
+				if ( ! this.isDefault( 'border_style' ) ) {
+					this.addCssProperty( selectorNotices, 'border-style', values.border_style );
+				}
+				if ( ! this.isDefault( 'border_color' ) ) {
+					this.addCssProperty( selectorNotices, 'border-color', values.border_color );
+				}
+
+				if ( ! this.isDefault( 'background_color' ) ) {
+					this.addCssProperty( selectorNotices, 'background-color', values.background_color );
+				}
+
+				// Icon styles.
+				selectors = [
+					this.baseSelector + ' .woocommerce-info .fusion-woo-notices-tb-icon',
+					this.baseSelector + ' .woocommerce-message .fusion-woo-notices-tb-icon',
+					this.baseSelector + ' .woocommerce-error .fusion-woo-notices-tb-icon'
+				];
+				if ( ! this.isDefault( 'icon_size' ) ) {
+					this.addCssProperty( selectors, 'font-size', values.icon_size + 'px' );
+				}
+				if ( ! this.isDefault( 'icon_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.icon_color );
+				}
+
+				// Link & Hover styles.
+				selectors = [
+					this.baseSelector + ' .woocommerce-info .wc-forward',
+					this.baseSelector + ' .woocommerce-message .wc-forward',
+					this.baseSelector + ' .woocommerce-error .wc-forward'
+				];
+				if ( ! this.isDefault( 'link_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.link_color );
+				}
+				selectors = [
+					this.baseSelector + ' .woocommerce-info .wc-forward:hover',
+					this.baseSelector + ' .woocommerce-message .wc-forward:hover',
+					this.baseSelector + ' .woocommerce-error .wc-forward:hover'
+				];
+				if ( ! this.isDefault( 'link_hover_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.link_hover_color );
+				}
+
+				// Success styles.
+				selectors = [ this.baseSelector + ' .woocommerce-message' ];
+				if ( ! this.isDefault( 'success_border_color' ) ) {
+					this.addCssProperty( selectors, 'border-color', values.success_border_color );
+				}
+				if ( ! this.isDefault( 'success_background_color' ) ) {
+					this.addCssProperty( selectors, 'background-color', values.success_background_color );
+				}
+				if ( ! this.isDefault( 'success_text_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.success_text_color );
+				}
+				selectors = [ this.baseSelector + ' .woocommerce-message .fusion-woo-notices-tb-icon' ];
+				if ( ! this.isDefault( 'success_icon_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.success_icon_color );
+				}
+
+				// Success Link & Hover styles.
+				selectors = [ this.baseSelector + ' .woocommerce-message .wc-forward' ];
+				if ( ! this.isDefault( 'success_link_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.success_link_color );
+				}
+				selectors = [ this.baseSelector + ' .woocommerce-message .wc-forward:hover' ];
+				if ( ! this.isDefault( 'success_link_hover_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.success_link_hover_color );
+				}
+
+				// Error styles.
+				if ( ! this.isDefault( 'error_border_color' ) ) {
+					this.addCssProperty( selectorError, 'border-color', values.error_border_color );
+				}
+				if ( ! this.isDefault( 'error_background_color' ) ) {
+					this.addCssProperty( selectorError, 'background-color', values.error_background_color );
+				}
+				if ( ! this.isDefault( 'error_text_color' ) ) {
+					this.addCssProperty( selectorError, 'color', values.error_text_color );
+				}
+				selectors = [ this.baseSelector + ' .woocommerce-error .fusion-woo-notices-tb-icon' ];
+				if ( ! this.isDefault( 'error_icon_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.error_icon_color );
+				}
+
+				// Error Link & Hover styles.
+				selectors = [ this.baseSelector + ' .woocommerce-error .wc-forward' ];
+				if ( ! this.isDefault( 'error_link_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.error_link_color );
+				}
+				selectors = [ this.baseSelector + ' .woocommerce-error .wc-forward:hover' ];
+				if ( ! this.isDefault( 'error_link_hover_color' ) ) {
+					this.addCssProperty( selectors, 'color', values.error_link_hover_color );
+				}
+
+				css = this.parseCSS();
+				return ( css ) ? '<style>' + css + '</style>' : '';
+
+			}
+
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Product Component View.
+		FusionPageBuilder.WooProductsView = FusionPageBuilder.ElementView.extend( {
+
+			onInit: function() {
+				if ( this.model.attributes.markup && '' === this.model.attributes.markup.output ) {
+					this.model.attributes.markup.output = this.getComponentPlaceholder();
+				}
+			},
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				// Validate values.
+				this.validateValues( atts.values );
+
+				this.values = atts.values;
+
+				// Any extras that need passed on.
+				attributes.cid    = this.model.get( 'cid' );
+				attributes.attr   = this.buildAttr( atts.values );
+				attributes.styles = this.buildStyleBlock( atts.values );
+				attributes.output = this.buildOutput( atts );
+				attributes.layout = atts.values.products_layout;
+				attributes.titleElement  = 'yes' === atts.values.heading_enable ? _.buildTitleElement( atts.values, atts.extras, this.getSectionTitle() ) : '';
+				attributes.carouselAttrs = this.buildCarouselAttrs( atts.values );
+				attributes.carouselNav   = 'yes' === atts.values.products_navigation ? this.buildCarouselNav() : '';
+				attributes.productsAttrs = this.buildProductsAttrs( atts.values );
+				attributes.query_data    = atts.query_data;
+				// add placeholder.
+				attributes.query_data.placeholder = this.getComponentPlaceholder();
+
+				return attributes;
+			},
+
+			/**
+			 * Modifies the values.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {void}
+			 */
+			validateValues: function( values ) {
+				if ( 'undefined' !== typeof values.margin_top && '' !== values.margin_top ) {
+					values.margin_top = _.fusionGetValueWithUnit( values.margin_top );
+				}
+
+				if ( 'undefined' !== typeof values.margin_right && '' !== values.margin_right ) {
+					values.margin_right = _.fusionGetValueWithUnit( values.margin_right );
+				}
+
+				if ( 'undefined' !== typeof values.margin_bottom && '' !== values.margin_bottom ) {
+					values.margin_bottom = _.fusionGetValueWithUnit( values.margin_bottom );
+				}
+
+				if ( 'undefined' !== typeof values.margin_left && '' !== values.margin_left ) {
+					values.margin_left = _.fusionGetValueWithUnit( values.margin_left );
+				}
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr         = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: this.shortcode_classname + ' ' + this.shortcode_classname + '-' + this.model.get( 'cid' ),
+						style: ''
+					} );
+
+				if ( values.margin_top ) {
+					attr.style += 'margin-top:' + values.margin_top + ';';
+				}
+
+				if ( values.margin_right ) {
+					attr.style += 'margin-right:' + values.margin_right + ';';
+				}
+
+				if ( values.margin_bottom ) {
+					attr.style += 'margin-bottom:' + values.margin_bottom + ';';
+				}
+
+				if ( values.margin_left ) {
+					attr.style += 'margin-left:' + values.margin_left + ';';
+				}
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds carousel nav.
+			 *
+			 * @since 3.2
+			 * @return {string}
+			 */
+			buildCarouselNav: function() {
+				var output = '';
+
+				output += '<div class="fusion-carousel-nav">';
+				output += '<span class="fusion-nav-prev"></span>';
+				output += '<span class="fusion-nav-next"></span>';
+				output += '</div>';
+
+				return output;
+			},
+
+			/**
+			 * Builds carousel attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} values - The values.
+			 * @return {Object}
+			 */
+			buildCarouselAttrs: function( values ) {
+				var attr = {
+					class: 'fusion-carousel'
+				};
+
+				/**
+				 * Set the autoplay variable.
+				 */
+				attr[ 'data-autoplay' ] = values.products_autoplay;
+
+				/**
+				 * Set the touch scroll variable.
+				 */
+				attr[ 'data-touchscroll' ] = values.products_swipe;
+
+				attr[ 'data-columns' ]     = values.products_columns;
+				attr[ 'data-itemmargin' ]  = parseInt( values.products_column_spacing ) + 'px';
+				attr[ 'data-itemwidth' ]   = 180;
+
+				attr[ 'data-scrollitems' ] = ( 0 == values.products_swipe_items ) ? '' : values.products_swipe_items;
+
+				return attr;
+			},
+
+			/**
+			 * Builds products UL attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} values - The values.
+			 * @return {Object}
+			 */
+			buildProductsAttrs: function( values ) {
+				var attr = {
+					class: 'products products-' + values.products_columns
+				};
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data[ this.shortcode_handle ] ) {
+					output = atts.query_data[ this.shortcode_handle ];
+				}
+
+				return output;
+			},
+
+			/**
+			 * Get section title based on the post type.
+			 *
+			 * @since 3.2
+			 * @return {string}
+			 */
+			getSectionTitle: function() {
+				return '';
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var css, selectors;
+
+				this.baseSelector = '.' + this.shortcode_classname + '.' + this.shortcode_classname + '-' +  this.model.get( 'cid' );
+				this.dynamic_css  = {};
+
+				// Icon styles.
+				selectors = [ this.baseSelector + ' .fusion-carousel .products>li' ];
+				this.addCssProperty( selectors, 'margin-right', 'auto' );
+				this.addCssProperty( selectors, 'padding', '0' );
+
+				selectors = [ this.baseSelector + ' .fusion-carousel ul.products' ];
+				this.addCssProperty( selectors, 'display', 'inherit' );
+				this.addCssProperty( selectors, 'margin', '0' );
+				selectors = [ this.baseSelector + ' .fusion-carousel .product-title' ];
+				this.addCssProperty( selectors, 'text-align', 'left' );
+
+				if ( ! this.isDefault( 'products_layout' ) ) {
+					selectors = [
+						'body:not(.fusion-woocommerce-equal-heights):not(.fusion-woo-archive-page-columns-1) ' + this.baseSelector + ' .fusion-carousel .fusion-carousel-item .fusion-carousel-item-wrapper',
+						'.fusion-woocommerce-equal-heights:not(.fusion-woo-archive-page-columns-1) ' + this.baseSelector + ' .products .product'
+					];
+					this.addCssProperty( selectors, 'display', 'block' );
+					selectors = [ '.fusion-woocommerce-equal-heights:not(.fusion-woo-archive-page-columns-1) ' + this.baseSelector + ' .fusion-carousel .fusion-carousel-item .fusion-carousel-item-wrapper' ];
+					this.addCssProperty( selectors, 'vertical-align', 'top' );
+				}
+
+				css = this.parseCSS();
+				return ( css ) ? '<style>' + css + '</style>' : '';
+
+			}
+
+		} );
+	} );
+}( jQuery ) );
+;/* global fusionBuilderText */
+
+var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Related Component View.
+		FusionPageBuilder.fusion_tb_woo_related = FusionPageBuilder.WooProductsView.extend( {
+
+			/**
+			 * Define shortcode handle.
+			 *
+			 * @since  3.2
+			 */
+			shortcode_handle: 'fusion_tb_woo_related',
+
+			/**
+			 * Define shortcode classname.
+			 *
+			 * @since  3.2
+			 */
+			shortcode_classname: 'fusion-woo-related-tb',
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr = FusionPageBuilder.WooProductsView.prototype.buildAttr.call( this, values );
+
+				attr[ 'class' ] += ' related products';
+
+				return attr;
+			},
+
+			/**
+			 * Get section title based on the post type.
+			 *
+			 * @since 3.2
+			 * @return {string}
+			 */
+			getSectionTitle: function() {
+				return fusionBuilderText.related_products;
+			}
+
+		} );
+	} );
+}( jQuery ) );
+;/* global fusionBuilderText */
+var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Related Component View.
+		FusionPageBuilder.fusion_tb_woo_upsells = FusionPageBuilder.WooProductsView.extend( {
+
+			/**
+			 * Define shortcode handle.
+			 *
+			 * @since  3.2
+			 */
+			shortcode_handle: 'fusion_tb_woo_upsells',
+
+			/**
+			 * Define shortcode classname.
+			 *
+			 * @since  3.2
+			 */
+			shortcode_classname: 'fusion-woo-upsells-tb',
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+
+				var attr = FusionPageBuilder.WooProductsView.prototype.buildAttr.call( this, values );
+
+				attr[ 'class' ] += ' up-sells upsells products';
+
+				return attr;
+			},
+
+			/**
+			 * Get section title based on the post type.
+			 *
+			 * @since 3.2
+			 * @return {string}
+			 */
+			getSectionTitle: function() {
+				return fusionBuilderText.upsells_products;
+			}
+
+		} );
+	} );
+}( jQuery ) );
+;var FusionPageBuilder = FusionPageBuilder || {};
+
+( function() {
+
+
+	jQuery( document ).ready( function() {
+
+		// Woo Product Images Component View.
+		FusionPageBuilder.fusion_tb_woo_product_images = FusionPageBuilder.ElementView.extend( {
+
+			/**
+			 * Runs before view DOM is patched.
+			 *
+			 * @since 3.2
+			 * @return {void}
+			 */
+			beforePatch: function() {
+				var element = jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( this.$el.find( '.woocommerce-product-gallery' ) );
+
+				if ( 'undefined' !== typeof element.data( 'flexslider' ) ) {
+					element.flexslider( 'destroy' );
+				}
+			},
+
+
+			/**
+			 * Modify template attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} atts - The attributes.
+			 * @return {Object}
+			 */
+			filterTemplateAtts: function( atts ) {
+				var attributes = {};
+
+				// Validate values.
+				this.values = atts.values;
+				this.params = this.model.get( 'params' );
+
+				// Any extras that need passed on.
+				attributes.cid         = this.model.get( 'cid' );
+				attributes.wrapperAttr = this.buildAttr( atts.values );
+				attributes.styles      = this.buildStyleBlock();
+				attributes.output      = this.buildOutput( atts );
+
+				return attributes;
+			},
+
+			/**
+			 * Builds attributes.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildAttr: function( values ) {
+				var attr = _.fusionVisibilityAtts( values.hide_on_mobile, {
+						class: 'fusion-woo-product-images fusion-woo-product-images-' + this.model.get( 'cid' ),
+						style: '',
+						'data-zoom_enabled': 'yes' === values.product_images_zoom ? 1 : 0,
+						'data-photoswipe_enabled': 'woocommerce' === values.product_images_layout ? 1 : 0
+					} );
+
+				if ( '' !== values.alignment ) {
+					attr.style += 'justify-content:' + values.alignment + ';';
+				}
+
+				if ( '' !== values[ 'class' ] ) {
+					attr[ 'class' ] += ' ' + values[ 'class' ];
+				}
+
+				if ( '' !== values.id ) {
+					attr.id = values.id;
+				}
+
+				attr = _.fusionAnimations( values, attr );
+
+				return attr;
+			},
+
+			/**
+			 * Builds output.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildOutput: function( atts ) {
+				var output = '';
+
+				if ( 'undefined' !== typeof atts.markup && 'undefined' !== typeof atts.markup.output && 'undefined' === typeof atts.query_data ) {
+					output = jQuery( jQuery.parseHTML( atts.markup.output ) ).filter( '.fusion-woo-product-images' ).html();
+					output = ( 'undefined' === typeof output ) ? atts.markup.output : output;
+				} else if ( 'undefined' !== typeof atts.query_data && 'undefined' !== typeof atts.query_data.markup ) {
+					output = atts.query_data.markup;
+				}
+
+				return output;
+			},
+
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.2
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function() {
+				var css;
+
+				this.baseSelector = '.fusion-woo-product-images-' + this.model.get( 'cid' );
+				this.dynamic_css  = {};
+
+				this.addCssProperty( this.baseSelector + ' .woocommerce-product-gallery', 'max-width', _.fusionGetValueWithUnit( this.values.product_images_width ) );
+
+				if ( ! this.isDefault( 'margin_top' ) ) {
+					this.addCssProperty( this.baseSelector, 'margin-top',  _.fusionGetValueWithUnit( this.values.margin_top ) );
+				}
+
+				if ( ! this.isDefault( 'margin_right' ) ) {
+					this.addCssProperty( this.baseSelector, 'margin-right',  _.fusionGetValueWithUnit( this.values.margin_right ) );
+				}
+
+				if ( ! this.isDefault( 'margin_bottom' ) ) {
+					this.addCssProperty( this.baseSelector, 'margin-bottom',  _.fusionGetValueWithUnit( this.values.margin_bottom ) );
+				}
+
+				if ( ! this.isDefault( 'margin_left' ) ) {
+					this.addCssProperty( this.baseSelector, 'margin-left',  _.fusionGetValueWithUnit( this.values.margin_left ) );
+				}
+
+				css = this.parseCSS();
+				return ( css ) ? '<style type="text/css">' + css + '</style>' : '';
+
+			}
 		} );
 	} );
 }( jQuery ) );

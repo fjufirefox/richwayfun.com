@@ -85,7 +85,7 @@
   position: relative;
   padding: 0 30px;
 }
-.fusionredux-container #fusionredux-form-wrapper .fusionredux-group-tab.accordionsChecked > .form-table {
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-group-tab.accordionsChecked > .form-table .fusionredux_field_th {
   display: none;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-group-tab.accordionsChecked > h2 + .form-table {
@@ -544,11 +544,13 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container {
   width: 317px;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-active,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-active,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-active,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-active {
   display: flex;
   flex-wrap: wrap;
@@ -556,6 +558,7 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-active .wp-picker-input-wrap,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-active .wp-picker-input-wrap,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-active .wp-picker-input-wrap,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-active .wp-picker-input-wrap {
   display: inline-flex;
   justify-content: space-between;
@@ -563,23 +566,27 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-active .wp-picker-input-wrap label,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-active .wp-picker-input-wrap label,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-active .wp-picker-input-wrap label,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-active .wp-picker-input-wrap label {
   width: 100%;
   padding-right: 3px;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-active .wp-picker-input-wrap input[type="text"],
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-active .wp-picker-input-wrap input[type="text"],
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-active .wp-picker-input-wrap input[type="text"],
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-active .wp-picker-input-wrap input[type="text"] {
   margin-right: 5px;
   width: 100% !important;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .wp-picker-holder,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .wp-picker-holder,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .wp-picker-holder,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .wp-picker-holder {
   width: 100%;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker {
   overflow: hidden;
   width: 100% !important;
@@ -587,41 +594,51 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-palette,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-slider,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-slider,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-slider,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-slider,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-square,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-square-inner,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-square-inner,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-square-inner,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-square-inner {
   box-shadow: none;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-palette,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-slider,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-slider,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-slider,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-slider,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-square,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-square {
   border: 1px solid #dfdfdf;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-square-inner,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-square-inner,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-square-inner,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-square-inner {
   border-radius: 0;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-picker-inner,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-picker-inner,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-picker-inner,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-picker-inner {
   display: flex;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-picker-inner .iris-slider,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-picker-inner .iris-slider,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-picker-inner .iris-slider,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-picker-inner .iris-slider {
   width: 25px !important;
   margin-left: 15px !important;
@@ -634,6 +651,7 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-picker-inner .iris-slider .ui-slider-handle,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-picker-inner .iris-slider .ui-slider-handle,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-picker-inner .iris-slider .ui-slider-handle,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-picker-inner .iris-slider .ui-slider-handle {
   margin-bottom: -8px;
   right: 0;
@@ -646,6 +664,7 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-picker-inner .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-picker-inner .iris-square,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-picker-inner .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-picker-inner .iris-square {
   width: calc(100% - 45px) !important;
   margin-right: 0;
@@ -657,11 +676,13 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker.iris-border,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker.iris-border,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker.iris-border,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker.iris-border {
   padding-bottom: 30px !important;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-square-value,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-square-value,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-square-value,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-square-value {
   display: block;
   width: 0 !important;
@@ -671,6 +692,7 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-picker .iris-square-handle,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-picker .iris-square-handle,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker .iris-square-handle,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-picker .iris-square-handle {
   top: 50%;
   left: 50%;
@@ -678,12 +700,14 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-palette-container,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-palette-container,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-palette-container,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-palette-container {
   display: flex;
   width: calc(100% - 45px) !important;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-palette-container > .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-palette-container > .iris-palette,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-palette-container > .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-palette-container > .iris-palette {
   border: 1px solid #e7e7e7;
   margin-left: 2px !important;
@@ -699,40 +723,56 @@
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container .iris-palette-container > .iris-palette:first-child,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container .iris-palette-container > .iris-palette:first-child,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-palette-container > .iris-palette:first-child,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container .iris-palette-container > .iris-palette:first-child {
   margin-left: 0 !important;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-alpha-container,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-alpha-container,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-alpha-container,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-alpha-container {
   width: 365px;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-alpha-container .iris-picker .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-alpha-container .iris-picker .iris-square,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-alpha-container .iris-picker .iris-square,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-alpha-container .iris-picker .iris-square {
   width: calc(100% - 85px) !important;
   margin-right: 15px;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-alpha-container .iris-palette-container > .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-alpha-container .iris-palette-container > .iris-palette,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-alpha-container .iris-palette-container > .iris-palette,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-alpha-container .iris-palette-container > .iris-palette {
   width: 20px !important;
   height: 20px !important;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-alpha-container .iris-palette-container > .iris-palette:first-child,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-alpha-container .iris-palette-container > .iris-palette:first-child,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-alpha-container .iris-palette-container > .iris-palette:first-child,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-alpha-container .iris-palette-container > .iris-palette:first-child {
   margin-left: 0 !important;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-alpha-container .wp-picker-input-wrap,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-alpha-container .wp-picker-input-wrap,
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-alpha-container .wp-picker-input-wrap,
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-alpha-container .wp-picker-input-wrap {
   width: 249px;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color .wp-picker-container.wp-picker-alpha-container .wp-picker-input-wrap label input[type="text"],
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_alpha .wp-picker-container.wp-picker-alpha-container .wp-picker-input-wrap label input[type="text"],
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container.wp-picker-alpha-container .wp-picker-input-wrap label input[type="text"],
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-typography .wp-picker-container.wp-picker-alpha-container .wp-picker-input-wrap label input[type="text"] {
   width: 100% !important;
+}
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .fusion-color-palette-list .fusion-color-palette-item {
+  margin-right: 7px;
+}
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-input-wrap {
+  width: 100% !important;
+}
+.fusionredux-container #fusionredux-form-wrapper .fusionredux-main .fusionredux-container-color_palette .wp-picker-container .iris-picker.iris-border {
+  padding-bottom: 0 !important;
 }
 .fusionredux-container #fusionredux-form-wrapper .fusionredux-main .upload_button_div .button {
   box-shadow: none;
@@ -2306,13 +2346,16 @@
 }
 .fusionredux-main .fusionredux-element-highlight {
   display: inline-block;
-  background-color: $color_accent_1;
   position: absolute;
-  top: 8px;
+  top: 50%;
+  right: 50px;
+  transform: translateY(-50%);
   padding: 3px 10px;
   color: #fff;
   font-size: 10px;
-  right: 40px;
+  background-color: $color_accent_1;
+  border-radius: 4px;
+  font-weight: bold;
 }
 .fusionredux-main .fusionredux-element-highlight .fusionredux-accordion-field .fusionredux-element-highlight {
   top: calc(50% - 12px);

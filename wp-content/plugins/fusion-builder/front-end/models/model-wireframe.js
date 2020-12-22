@@ -3,7 +3,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 ( function() {
 
-	jQuery( document ).ready( function() {
 		FusionPageBuilder.Wireframe = Backbone.Model.extend( {
 
 			initialize: function() {
@@ -116,6 +115,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 		} );
 
+	jQuery( document ).ready( function() {
 		// Column sortables
 		_.extend( FusionPageBuilder.BaseColumnView.prototype, {
 

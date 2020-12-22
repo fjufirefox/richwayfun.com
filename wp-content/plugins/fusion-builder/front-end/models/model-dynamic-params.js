@@ -105,6 +105,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					elementView.reRender();
 				} );
 				return false;
+			} else if ( 'string' !== typeof value ) {
+				return value;
 			}
 			return beforeString + value + afterString;
 		},

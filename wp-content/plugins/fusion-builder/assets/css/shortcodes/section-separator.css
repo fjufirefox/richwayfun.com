@@ -156,7 +156,14 @@
 .fusion-section-separator .fusion-hills-opacity-candy path:nth-child(4) {
   opacity: 0.3;
 }
+.fusion-section-separator .fusion-section-separator-svg-bg {
+  background-position: bottom;
+  background-repeat-y: no-repeat;
+}
 .ua-edge .fusion-section-separator svg,
 .ua-ie-11 .fusion-section-separator svg {
   transform: scale(1.01);
+}
+.ua-chrome .fusion-section-separator .fusion-section-separator-svg-bg {
+  background-position-y: 1px;
 }

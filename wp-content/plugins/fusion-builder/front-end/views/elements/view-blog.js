@@ -235,6 +235,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						}
 					}
 
+					if ( 'grid' === values.layout ) {
+						if ( 'yes' === values.equal_heights ) {
+							attr[ 'class' ] += ' fusion-blog-equal-heights';
+						}
+					}
+
 					if ( 'undefined' !== typeof values.blog_grid_column_spacing || 0 === parseInt( values.blog_grid_column_spacing, 10 ) ) {
 						attr[ 'data-grid-col-space' ] = values.blog_grid_column_spacing;
 					}
@@ -242,12 +248,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					negativeMargin = ( -1 ) * parseFloat( values.blog_grid_column_spacing ) / 2;
 
 					attr.style = 'margin: ' + negativeMargin + 'px ' + negativeMargin + 'px 0;height:500px;';
-				}
-
-				if ( 'grid' === values.layout ) {
-					if ( 'yes' === values.equal_heights ) {
-						attr[ 'class' ] += ' fusion-blog-equal-heights';
-					}
 				}
 
 				return attr;

@@ -188,6 +188,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				// // Create attribute objects.
 				attributes.attr       = this.buildAttr( atts.values );
 
+				// Whether it has a dynamic data stream.
+				attributes.usingDynamic = 'undefined' !== typeof atts.values.multiple_upload;
+
 				return attributes;
 			},
 

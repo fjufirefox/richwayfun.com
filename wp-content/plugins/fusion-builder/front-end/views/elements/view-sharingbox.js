@@ -1,4 +1,4 @@
-/* global cssua */
+/* global cssua, FusionApp */
 /* jshint -W107 */
 var FusionPageBuilder = FusionPageBuilder || {};
 
@@ -50,15 +50,218 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Validate values and extras.
 				this.validateValuesExtras( atts.values, atts.extras );
+				this.values = atts.values;
 
 				// Create attribute objects.
+				attributes.cid         = this.model.get( 'cid' );
+				this.counter = this.model.get( 'cid' );
 				attributes.shortcodeAttr      = this.buildShortcodeAttr( atts.values );
 				attributes.socialNetworksAttr = this.buildSocialNetworksAttr( atts.values );
 				attributes.taglineAttr        = this.buildTaglineAttr( atts.values );
 				attributes.icons              = this.buildIcons( atts.values );
 				attributes.tagline            = atts.values.tagline;
+				attributes.taglineVisibility  = atts.values.tagline_visibility;
+				attributes.styles             = this.buildStyleBlock();
 
 				return attributes;
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  2.4
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function() {
+				var selector, large_layout, css, layout_medium, layout_small;
+				this.baseSelector = '.sharingbox-shortcode-icon-wrapper-' +  this.counter + '';
+				this.wrapper_selector = '.fusion-sharing-box-' +  this.counter;
+				this.selectors = [ this.baseSelector, this.wrapper_selector ];
+				this.dynamic_css = {};
+
+				if ( 'hide' ===  this.values.tagline_visibility ) {
+					this.values.layout = 'floated';
+					this.values.layout_medium = 'floated';
+					this.values.layout_small = 'floated';
+				}
+
+				if ( ! this.values.layout_medium ) {
+					this.values.layout_medium =  this.values.layout;
+				}
+
+				if ( ! this.values.layout_small ) {
+					this.values.layout_small =  this.values.layout;
+				}
+
+				if ( this.values.icon_taglines ) {
+					if ( 'before' ===  this.values.tagline_placement ) {
+						this.addCssProperty( this.wrapper_selector + ' .fusion-social-network-icon-tagline', 'margin-right', '0.5em', true );
+					} else {
+						this.addCssProperty( this.wrapper_selector + ' .fusion-social-network-icon-tagline', 'margin-left', '0.5em', true );
+					}
+
+					this.addCssProperty( this.baseSelector + ' span a', 'align-items', 'center', true );
+					this.addCssProperty( this.baseSelector + ' span a', 'display', 'flex', true );
+				}
+
+				if ( ! this.values.stacked_align_medium ) {
+					this.values.stacked_align_medium =  this.values.stacked_align;
+				}
+
+				if ( ! this.values.stacked_align_small ) {
+					this.values.stacked_align_small =  this.values.stacked_align;
+				}
+
+				if ( ! this.values.alignment_medium ) {
+					this.values.alignment_medium =  this.values.alignment;
+				}
+
+				if ( ! this.values.alignment_small ) {
+					this.values.alignment_small =  this.values.alignment;
+				}
+
+				if ( !this.isDefault( 'alignment' ) ) {
+					this.addCssProperty( [ this.baseSelector ], 'justify-content',  this.values.alignment, true );
+				}
+
+				selector = [ this.wrapper_selector ];
+				if ( 'floated' ===  this.values.layout ) {
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', '0', true );
+				} else {
+					this.addCssProperty( selector, 'align-items',  this.values.stacked_align, true );
+					this.addCssProperty( selector, 'justify-content', 'space-around', true );
+					this.addCssProperty( [ this.baseSelector ], 'width', '100%', true );
+				}
+
+				large_layout = ( 'stacked' ===  this.values.layout ) ? ' column' : 'row';
+				this.addCssProperty( selector, 'flex-direction', large_layout, true );
+				if ( !this.isDefault( 'border_color' ) ) {
+					this.addCssProperty( selector, 'border-color',  this.values.border_color, true );
+				}
+
+				if ( !this.isDefault( 'wrapper_padding_top' ) ) {
+					this.addCssProperty( selector, 'padding-top',  this.values.wrapper_padding_top, true );
+				}
+
+				if ( !this.isDefault( 'wrapper_padding_bottom' ) ) {
+					this.addCssProperty( selector, 'padding-bottom',  this.values.wrapper_padding_bottom, true );
+				}
+
+				if ( !this.isDefault( 'wrapper_padding_left' ) ) {
+					this.addCssProperty( selector, 'padding-left',  this.values.wrapper_padding_left, true );
+				}
+
+				if ( !this.isDefault( 'wrapper_padding_right' ) ) {
+					this.addCssProperty( selector, 'padding-right',  this.values.wrapper_padding_right, true );
+				}
+
+				if ( !this.isDefault( 'border_bottom' ) ) {
+					this.addCssProperty( selector, 'border-bottom-width',  this.values.border_bottom, true );
+				}
+
+				if ( !this.isDefault( 'border_top' ) ) {
+					this.addCssProperty( selector, 'border-top-width',  this.values.border_top, true );
+				}
+
+				if ( !this.isDefault( 'border_left' ) ) {
+					this.addCssProperty( selector, 'border-left-width',  this.values.border_left, true );
+				}
+
+				if ( !this.isDefault( 'border_right' ) ) {
+					this.addCssProperty( selector, 'border-right-width',  this.values.border_right, true );
+				}
+
+				selector = [ this.baseSelector + ' span:not(.sharingbox-shortcode-icon-separator)' ];
+				if ( !this.isDefault( 'padding_top' ) ) {
+					this.addCssProperty( selector, 'padding-top',  this.values.padding_top, true );
+				}
+
+				if ( !this.isDefault( 'padding_bottom' ) ) {
+					this.addCssProperty( selector, 'padding-bottom',  this.values.padding_bottom, true );
+				}
+
+				if ( !this.isDefault( 'padding_left' ) ) {
+					this.addCssProperty( selector, 'padding-left',  this.values.padding_left, true );
+				}
+
+				if ( !this.isDefault( 'padding_right' ) ) {
+					this.addCssProperty( selector, 'padding-right',  this.values.padding_right, true );
+				}
+
+				if ( !this.isDefault( 'icon_tagline_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' a', 'color',  this.values.icon_tagline_color, true );
+				}
+
+				if ( !this.isDefault( 'icon_tagline_color_hover' ) ) {
+					this.addCssProperty( this.baseSelector + ' a:hover', 'color',  this.values.icon_tagline_color_hover, true );
+				}
+
+				if ( !this.isDefault( 'tagline_text_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' a', 'font-size',  this.values.tagline_text_size, true );
+				}
+
+				if ( !this.isDefault( 'icon_size' ) ) {
+					this.addCssProperty( this.baseSelector + ' a i', 'font-size',  this.values.icon_size, true );
+				}
+
+				selector = [ this.baseSelector + ' span.sharingbox-shortcode-icon-separator' ];
+				if ( !this.isDefault( 'separator_border_color' ) ) {
+					this.addCssProperty( selector, 'border-color',  this.values.separator_border_color, true );
+				}
+
+				if ( !this.isDefault( 'separator_border_sizes' ) ) {
+					this.values.separator_border_sizes = this.values.separator_border_sizes + 'px';
+					this.addCssProperty( selector, 'border-right-width',  this.values.separator_border_sizes, true );
+				}
+
+				css = this.parseCSS();
+				this.dynamic_css = {};
+				layout_medium = ( 'stacked' ===  this.values.layout_medium ) ? ' column' : 'row';
+				selector = [ this.wrapper_selector ];
+				this.addCssProperty( selector, 'flex-direction', layout_medium, true );
+				if ( 'floated' !==  this.values.layout_medium ) {
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', 'revert', true );
+					this.addCssProperty( [ this.baseSelector ], 'width', '100%', true );
+				} else {
+					this.addCssProperty( [ this.baseSelector ], 'width', 'auto', true );
+					this.addCssProperty( selector, 'align-items', 'center', true );
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', '0', true );
+					this.addCssProperty( this.wrapper_selector + ' h4', 'margin-right', '0.5em', true );
+				}
+
+				if ( this.values.alignment_medium ) {
+					this.addCssProperty( [ this.baseSelector ], 'justify-content',  this.values.alignment_medium, true );
+					if ( 'floated' !==  this.values.layout_medium ) {
+						this.addCssProperty( selector, 'align-items',  this.values.stacked_align_medium, true );
+					}
+
+				}
+
+				css += '@media only screen and (max-width:' + FusionApp.settings.visibility_medium + 'px){' + this.parseCSS() + ' }';
+				layout_small = ( 'stacked' ===  this.values.layout_small ) ? ' column' : 'row';
+				this.dynamic_css = {};
+				this.addCssProperty( selector, 'flex-direction', layout_small, true );
+				if ( 'floated' !==  this.values.layout_small ) {
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', 'revert', true );
+					this.addCssProperty( [ this.baseSelector ], 'width', '100%', true );
+				} else {
+					this.addCssProperty( [ this.wrapper_selector + ' h4' ], 'margin-bottom', '0', true );
+					this.addCssProperty( selector, 'align-items', 'center', true );
+					this.addCssProperty( [ this.baseSelector ], 'width', 'auto', true );
+					this.addCssProperty( this.wrapper_selector + ' h4', 'margin-right', '0.5em', true );
+				}
+
+				if ( this.values.alignment_small ) {
+					this.addCssProperty( this.baseSelector, 'justify-content',  this.values.alignment_small, true );
+					if ( 'floated' !==  this.values.layout_small ) {
+						this.addCssProperty( selector, 'align-items',  this.values.stacked_align_small, true );
+					}
+
+				}
+
+				css += '@media only screen and (max-width:' + FusionApp.settings.visibility_small + 'px){' + this.parseCSS() + ' }';
+				return ( css ) ? '<style type="text/css">' + css + '</style>' : '';
 			},
 
 			/**
@@ -83,7 +286,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 */
 			buildShortcodeAttr: function( values ) {
 				var sharingboxShortcode = _.fusionVisibilityAtts( values.hide_on_mobile, {
-					class: 'share-box fusion-sharing-box'
+					class: 'fusion-sharing-box fusion-sharing-box-' + this.model.get( 'cid' ),
+					style: ''
 				} );
 
 				sharingboxShortcode[ 'class' ] += _.fusionGetStickyClass( values.sticky_display );
@@ -108,6 +312,22 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					sharingboxShortcode[ 'class' ] += ' ' + values.id;
 				}
 
+				if ( '' !== values.margin_top ) {
+					sharingboxShortcode.style += 'margin-top: ' + values.margin_top + ';';
+				}
+
+				if ( '' !== values.margin_bottom ) {
+					sharingboxShortcode.style += 'margin-bottom: ' + values.margin_bottom + ';';
+				}
+
+				if ( '' !== values.margin_left ) {
+					sharingboxShortcode.style += 'margin-left: ' + values.margin_left + ';';
+				}
+
+				if ( '' !== values.margin_right ) {
+					sharingboxShortcode.style += 'margin-right: ' + values.margin_right + ';';
+				}
+
 				sharingboxShortcode[ 'data-title' ]       = values.title;
 				sharingboxShortcode[ 'data-description' ] = values.description;
 				sharingboxShortcode[ 'data-link' ]        = values.link;
@@ -125,15 +345,15 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 */
 			buildSocialNetworksAttr: function( values ) {
 				var sharingboxShortcodeSocialNetworks = {
-					class: 'fusion-social-networks'
+					class: 'fusion-social-networks sharingbox-shortcode-icon-wrapper sharingbox-shortcode-icon-wrapper-' + this.model.get( 'cid' )
 				};
 
 				if ( 'yes' === values.icons_boxed ) {
 					sharingboxShortcodeSocialNetworks[ 'class' ] += ' boxed-icons';
 				}
 
-				if ( '' === values.tagline ) {
-					sharingboxShortcodeSocialNetworks.style = 'text-align: inherit;';
+				if ( '' !== values.alignment ) {
+					sharingboxShortcodeSocialNetworks.style = 'text-align: ' + values.alignment + ';';
 				}
 
 				return sharingboxShortcodeSocialNetworks;
@@ -196,6 +416,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				var icons            = '',
 					iconColors       = values.icon_colors,
 					boxColors        = values.box_colors,
+					itemTagline	 = values.icon_taglines,
 					useBrandColors   = false,
 					numOfIconColors,
 					numOfBoxColors,
@@ -208,10 +429,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					image,
 					socialLink,
 					sharingboxShortcodeIcon,
+					sharingboxShortcodeIconLink,
 					iconOptions,
 					socialIconBoxedColors,
 					network,
-					tooltip;
+					tooltip,
+					numOfTaglines;
 
 				if ( 'brand' === values.color_type ) {
 					useBrandColors = true;
@@ -227,10 +450,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				iconColors = iconColors.split( '|' );
 				boxColors  = boxColors.split( '|' );
+				itemTagline = itemTagline.split( '|' );
 
 				numOfIconColors     = iconColors.length;
 				numOfBoxColors      = boxColors.length;
-				socialNetworks      = values.social_networks.split( '|' );
+				numOfTaglines      = itemTagline.length;
+				socialNetworks = values.social_share_links;
+
+				if ( 'string' === typeof socialNetworks ) {
+					socialNetworks = socialNetworks.split( ',' );
+				}
 				socialNetworksCount = socialNetworks.length;
 
 				for ( i = 0; i < socialNetworksCount; i++ ) {
@@ -257,7 +486,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 							iconOptions.box_color = boxColors[ 0 ];
 						}
 					}
-
+					if ( 1 === numOfTaglines ) {
+						iconOptions.icon_tagline =  itemTagline[ 0 ];
+					} else {
+						iconOptions.icon_tagline = i < itemTagline.length ? itemTagline[ i ] : '';
+					}
+					iconOptions.social_network = 'email' === iconOptions.social_network ? 'mail' : iconOptions.social_network;
 					// sharingboxShortcodeIcon attributes
 					description = values.description;
 					link        = values.link;
@@ -267,6 +501,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					sharingboxShortcodeIcon = {
 						class: 'fusion-social-network-icon fusion-tooltip fusion-' + iconOptions.social_network + ' fusion-icon-' + iconOptions.social_network
 					};
+					sharingboxShortcodeIconLink = {};
 
 					socialLink = '';
 					switch ( iconOptions.social_network ) {
@@ -299,11 +534,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						break;
 					}
 
-					sharingboxShortcodeIcon.href   = socialLink;
-					sharingboxShortcodeIcon.target = ( values.linktarget && 'mail' !== iconOptions.social_network ) ? '_blank' : '_self';
+					sharingboxShortcodeIconLink.href   = socialLink;
+					sharingboxShortcodeIconLink.target = ( values.linktarget && 'mail' !== iconOptions.social_network ) ? '_blank' : '_self';
 
 					if ( '_blank' === sharingboxShortcodeIcon.target ) {
-						sharingboxShortcodeIcon.rel = 'noopener noreferrer';
+						sharingboxShortcodeIconLink.rel = 'noopener noreferrer';
 					}
 
 					sharingboxShortcodeIcon.style = ( iconOptions.icon_color ) ? 'color:' + iconOptions.icon_color + ';' : '';
@@ -319,17 +554,27 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						sharingboxShortcodeIcon.style += 'border-radius:' + values.icons_boxed_radius + ';';
 					}
 
-					sharingboxShortcodeIcon[ 'data-placement' ] = values.tooltip_placement;
+					sharingboxShortcodeIconLink[ 'data-placement' ] = values.tooltip_placement;
 					tooltip = iconOptions.social_network;
 
-					sharingboxShortcodeIcon[ 'data-title' ] = _.fusionUcFirst( tooltip );
-					sharingboxShortcodeIcon.title         = _.fusionUcFirst( tooltip );
-					sharingboxShortcodeIcon[ 'aria-label' ] = _.fusionUcFirst( tooltip );
+					sharingboxShortcodeIconLink[ 'data-title' ] = _.fusionUcFirst( tooltip );
+					sharingboxShortcodeIconLink.title         = _.fusionUcFirst( tooltip );
+					sharingboxShortcodeIconLink[ 'aria-label' ] = _.fusionUcFirst( tooltip );
+
 
 					if ( 'none' !== values.tooltip_placement ) {
-						sharingboxShortcodeIcon[ 'data-toggle' ] = 'tooltip';
+						sharingboxShortcodeIconLink[ 'data-toggle' ] = 'tooltip';
 					}
-					icons += '<a ' + _.fusionGetAttributes( sharingboxShortcodeIcon ) + '></a>';
+					icons += '<span><a ' + _.fusionGetAttributes( sharingboxShortcodeIconLink ) + '>';
+					icons += 'before' === values.tagline_placement && '' !== iconOptions.icon_tagline ? '<div class="fusion-social-network-icon-tagline">' + iconOptions.icon_tagline + '</div>' : '';
+					icons += '<i  ' + _.fusionGetAttributes( sharingboxShortcodeIcon ) + ' aria-hidden="true"></i>';
+					icons += 'after' === values.tagline_placement && '' !== iconOptions.icon_tagline ? '<div class="fusion-social-network-icon-tagline">' + iconOptions.icon_tagline + '</div>' : '';
+					icons += '</a></span>';
+
+					if ( 0 < values.separator_border_sizes && i < socialNetworks.length - 1 ) {
+						icons += '<span class="sharingbox-shortcode-icon-separator"></span>';
+					}
+
 				}
 
 				return icons;

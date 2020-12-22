@@ -24,11 +24,50 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.fusiona-check_circle_outline:before {
-  content: "\e965";
+.fusiona-woo-add-to-cart:before {
+  content: "\e967";
 }
-.fusiona-check_circle:before {
-  content: "\e966";
+.fusiona-woo-additional-info:before {
+  content: "\e968";
+}
+.fusiona-woo-archive:before {
+  content: "\e969";
+}
+.fusiona-woo-checkout:before {
+  content: "\e96a";
+}
+.fusiona-woo-my-account:before {
+  content: "\e96b";
+}
+.fusiona-woo-notices:before {
+  content: "\e96c";
+}
+.fusiona-woo-price:before {
+  content: "\e96d";
+}
+.fusiona-woo-product-images:before {
+  content: "\e96e";
+}
+.fusiona-woo-rating:before {
+  content: "\e96f";
+}
+.fusiona-woo-related-products:before {
+  content: "\e970";
+}
+.fusiona-woo-reviews:before {
+  content: "\e971";
+}
+.fusiona-woo-short-description:before {
+  content: "\e972";
+}
+.fusiona-woo-stock:before {
+  content: "\e973";
+}
+.fusiona-woo-tabs:before {
+  content: "\e974";
+}
+.fusiona-woo-upsell-products:before {
+  content: "\e975";
 }
 .fusiona-af-recaptcha:before {
   content: "\e964";
@@ -632,4 +671,10 @@
 }
 .fusiona-eye-slash:before {
   content: "\e9d1";
+}
+.fusiona-check_circle_outline:before {
+  content: "\e965";
+}
+.fusiona-check_circle:before {
+  content: "\e966";
 }

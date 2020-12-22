@@ -30,8 +30,17 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 			buildAttr: function( values ) {
 				var attr = {
-						'class': 'fusion-lottie-animation'
-					};
+						'class': 'fusion-lottie-animation',
+						'style': ''
+					},
+					alignClasses = {
+						'center': 'mx-auto',
+						'left': 'mr-auto',
+						'right': 'ml-auto'
+					},
+					alignLarge,
+					alignMedium,
+					alignSmall;
 
 				if ( '' !== values.json ) {
 					attr[ 'data-path' ] = values.json;
@@ -61,6 +70,25 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						attr.rel = 'noopener noreferrer';
 					}
 				}
+
+				if ( this.isFlex ) {
+					alignLarge  = values.align && 'none' !== values.align ? values.align : false,
+					alignMedium = values.align_medium && 'none' !== values.align_medium ? values.align_medium : false,
+					alignSmall  = values.align_small && 'none' !== values.align_small ? values.align_small : false;
+
+					if ( alignLarge ) {
+						attr[ 'class' ] += ' lg-' + alignClasses[ alignLarge ];
+					}
+
+					if ( alignMedium ) {
+						attr[ 'class' ] += ' md-' + alignClasses[ alignMedium ];
+					}
+
+					if ( alignSmall ) {
+						attr[ 'class' ] += ' sm-' + alignClasses[ alignSmall ];
+					}
+				}
+
 				return attr;
 			},
 
@@ -77,10 +105,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						style: '',
 						'class': 'fusion-lottie fusion-lottie-' + this.model.get( 'cid' ),
 						'data-id': this.model.get( 'cid' )
-					},
-					alignLarge,
-					alignMedium,
-					alignSmall;
+					};
 
 				// Hide on mobile.
 				attr = _.fusionVisibilityAtts( values.hide_on_mobile, attr );
@@ -106,24 +131,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 				if ( '' !== values.margin_left ) {
 					attr.style += 'margin-left:' + _.fusionValidateAttrValue( values.margin_left, 'px' ) + ';';
-				}
-
-				if ( this.isFlex ) {
-					alignLarge  = values.align && 'none' !== values.align ? values.align : false,
-					alignMedium = values.align_medium && 'none' !== values.align_medium ? values.align_medium : false,
-					alignSmall  = values.align_small && 'none' !== values.align_small ? values.align_small : false;
-
-					if ( alignLarge ) {
-						attr[ 'class' ] += ' lg-text-align-' + alignLarge;
-					}
-
-					if ( alignMedium ) {
-						attr[ 'class' ] += ' md-text-align-' + alignMedium;
-					}
-
-					if ( alignSmall ) {
-						attr[ 'class' ] += ' sm-text-align-' + alignSmall;
-					}
 				}
 
 				return attr;

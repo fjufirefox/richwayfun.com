@@ -66,7 +66,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					{
 						generator_only: 'undefined' !== typeof element.generator_only ? true : element.generator_only,
 						templates: 'undefined' !== typeof element.templates ? element.templates : false,
-						components_per_template: 'undefined' !== typeof element.components_per_template ? element.components_per_template : false
+						components_per_template: 'undefined' !== typeof element.components_per_template ? element.components_per_template : false,
+						template_tooltip: 'undefined' !== typeof element.template_tooltip ? element.template_tooltip : false
 					}
 				)
 			);
@@ -729,7 +730,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					}
 
 					contentErrorMarkup.dialog( {
-						title: '<span class="icon type-warning"><i class="fusiona-exclamation" aria-hidden="true"></i></span>' + contentErrorTitle,
+						title: contentErrorTitle,
 						dialogClass: 'fusion-builder-dialog fusion-builder-error-dialog fusion-builder-settings-dialog',
 						autoOpen: true,
 						modal: true,
@@ -757,6 +758,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 									jQuery( this ).html( '<i class="fusiona-check" aria-hidden="true"></i> ' + fusionBuilderText.unknown_error_copied );
 								} );
 							}
+						},
+						create: function( event, ui ) {
+							// Add Title.
+							jQuery( this ).siblings().find( 'span.ui-dialog-title' ).prepend( '<span class="icon type-warning"><i class="fusiona-exclamation" aria-hidden="true"></i></span>' );
 						},
 						close: function() {} // eslint-disable-line no-empty-function
 					} );
@@ -1458,6 +1463,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					textType,
 					fontFamily,
 					fontVariant,
+					elementFonts,
 
 					// Check for shortcodes inside shortcode content
 					shortcodesInContent = 'undefined' !== typeof shortcodeContent && '' !== shortcodeContent && shortcodeContent.match( regExp ),
@@ -1519,6 +1525,20 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				if ( 'fusion_builder_blank_page' === shortcodeName ) {
 					elementSettings.type = 'fusion_builder_blank_page';
 				}
+
+				if ( 'fusion_tb_meta' === shortcodeName ) {
+					// Border sizes.
+					if ( ( 'undefined' === typeof shortcodeAttributes.named.border_top ||
+						'undefined' === typeof shortcodeAttributes.named.border_bottom ||
+						'undefined' === typeof shortcodeAttributes.named.border_left ||
+						'undefined' === typeof shortcodeAttributes.named.border_right ) &&
+						'string' === typeof shortcodeAttributes.named.border_size ) {
+						shortcodeAttributes.named.border_top    = shortcodeAttributes.named.border_size + 'px';
+						shortcodeAttributes.named.border_bottom = shortcodeAttributes.named.border_size + 'px';
+					}
+					delete shortcodeAttributes.named.border_size;
+				}
+
 				if ( _.isObject( shortcodeAttributes.named ) ) {
 					for ( key in shortcodeAttributes.named ) {
 
@@ -1736,22 +1756,39 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					} );
 				}
 
-				if ( true === FusionApp.layoutIsLoading && FusionPageBuilder.options.fusionTypographyField ) {
-					textType	= 'fusion_title' === elementSettings.element_type ? 'title' : 'text';
-					fontFamily	= elementSettings.params[ 'fusion_font_family_' + textType + '_font' ];
-					fontVariant	= elementSettings.params[ 'fusion_font_variant_' + textType + '_font' ];
+				if ( true === FusionPageBuilderApp.layoutIsLoading && 'object' === typeof FusionPageBuilder.options.fusionTypographyField && 'object' === typeof fusionAllElements[ elementSettings.element_type ] ) {
+					elementFonts = [];
 
-					if ( fontFamily ) {
+					// Find typography options and then get values.
+					_.each( fusionAllElements[ elementSettings.element_type ].params, function( optionParam ) {
+						if ( 'font_family' === optionParam.type ) {
+
+							// If we have a family value, add to array.
+							if ( 'string' === typeof elementSettings.params[ 'fusion_font_family_' + optionParam.param_name ] && '' !== elementSettings.params[ 'fusion_font_family_' + optionParam.param_name ] ) {
+								elementFonts.push( {
+									family: elementSettings.params[ 'fusion_font_family_' + optionParam.param_name ],
+									variant: elementSettings.params[ 'fusion_font_variant_' + optionParam.param_name ]
+								} );
+							}
+						}
+					} );
+
+					if ( ! _.isEmpty( elementFonts ) ) {
 						// If webfonts are not defined, init them and re-run this method.
 						if ( ! FusionApp.assets.webfonts ) {
 							jQuery.when( FusionApp.assets.getWebFonts() ).done( function() {
-								FusionPageBuilder.options.fusionTypographyField.webFontLoad( fontFamily, fontVariant, false );
+								_.each( elementFonts, function( font ) {
+									FusionPageBuilder.options.fusionTypographyField.webFontLoad( font.family, font.variant, false );
+								} );
 							} );
 							return this;
 						}
-						FusionPageBuilder.options.fusionTypographyField.webFontLoad( fontFamily, fontVariant, false );
+						_.each( elementFonts, function( font ) {
+							FusionPageBuilder.options.fusionTypographyField.webFontLoad( font.family, font.variant, false );
+						} );
 					}
 				}
+
 
 				if ( shortcodesInContent ) {
 

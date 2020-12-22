@@ -177,6 +177,29 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			};
 		},
 
+		fusion_cart_hide: function( name, value, args, view ) {
+
+			if ( 'string' !== typeof args.selector ) {
+				return {
+					render: true
+				};
+			}
+
+			if ( ! args.skip ) {
+				view.changeParam( name, value );
+			}
+
+			if ( 'no' === value ) {
+				view.$el.find( '.fusion-woo-cart' ).addClass( args.selector );
+			} else {
+				view.$el.find( '.fusion-woo-cart' ).removeClass( args.selector );
+			}
+
+			return {
+				render: false
+			};
+		},
+
 		fusion_ajax: function( name, value, modelData, args, cid, action, model, elementView ) {
 
 			var params   = jQuery.extend( true, {}, modelData.params ),
@@ -524,6 +547,35 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 			// If the ajax markup is still there from initial load then data-count is wrong.
 			view.$el.find( 'nav' ).attr( 'data-count', view.model.get( 'cid' ) );
+
+			return {
+				render: false
+			};
+		},
+
+		fusion_style_block: function( name, value, args, view ) {
+			var styleEl;
+			if ( ! args.skip ) {
+				view.changeParam( name, value );
+			}
+
+			const attrs = view.getTemplateAtts();
+
+			// Can't find base selector, markup likely wrong and needs updated.
+			if ( ! view.$el.find( view.baseSelector ).length ) {
+				return {
+					render: true
+				};
+			}
+
+			styleEl = view.$el.find( 'style' ).first();
+
+			// When element is added there will be no <style> tag, so we have to create it.
+			if ( 0 === jQuery( styleEl ).length ) {
+				styleEl = view.$el.find( '.fusion-builder-element-content' ).prepend( attrs.styles );
+			} else {
+				jQuery( styleEl ).replaceWith( attrs.styles );
+			}
 
 			return {
 				render: false

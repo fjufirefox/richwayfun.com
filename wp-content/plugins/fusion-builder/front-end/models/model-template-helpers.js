@@ -1376,10 +1376,6 @@ _.mixin( {
 				label: 'LinkedIn',
 				color: '#0077b5'
 			},
-			mixer: {
-				label: 'Mixer',
-				color: '#1FBAED'
-			},
 			myspace: {
 				label: 'Myspace',
 				color: '#000000'
@@ -1585,7 +1581,6 @@ _.mixin( {
 				digg: 'digg',
 				blogger: 'blogger',
 				skype: 'skype',
-				mixer: 'mixer',
 				myspace: 'myspace',
 				deviantart: 'deviantart',
 				yahoo: 'yahoo',
@@ -2342,29 +2337,40 @@ _.mixin( {
 	 * Get font family styling.
 	 *
 	 * @since 2.1
+	 * @param {string} param_id - Param ID.
 	 * @param {Object} values - The values.
-	 * @return {String} - The generated styling.
+	 * @param {string} format - Format of returned value, string or object.
+	 * @return {mixed} - The generated styling.
 	 */
-	fusionGetFontStyle: function( param_id, values ) {
-		var style  = '',
-			weight = '';
+	fusionGetFontStyle: function( param_id, values, format = 'string' ) {
+		var style     = {},
+			style_str = '',
+			weight    = '';
 
 		if ( '' !== values[ 'fusion_font_family_' + param_id ] ) {
-			if ( values[ 'fusion_font_family_' + param_id ].includes( '\'' ) ) {
-				style += 'font-family:' + values[ 'fusion_font_family_' + param_id ] + ';';
+			if ( values[ 'fusion_font_family_' + param_id ].includes( '\'' ) || 'inherit' === values[ 'fusion_font_family_' + param_id ] ) {
+				style[ 'font-family' ] = values[ 'fusion_font_family_' + param_id ];
 			} else {
-				style += 'font-family:\'' + values[ 'fusion_font_family_' + param_id ] + '\';';
+				style[ 'font-family' ] = '\'' + values[ 'fusion_font_family_' + param_id ] + '\'';
 			}
 
 			if ( '' !== values[ 'fusion_font_variant_' + param_id ] ) {
 				weight = values[ 'fusion_font_variant_' + param_id ].replace( 'italic', '' );
 				if ( weight !== values[ 'fusion_font_variant_' + param_id ] ) {
-					style += 'font-style: italic;';
+					style[ 'font-style' ] = 'italic';
 				}
 				if ( '' !== weight ) {
-					style += 'font-weight:' + weight + ';';
+					style[ 'font-weight' ] = weight;
 				}
 			}
+		}
+
+		if ( 'string' === format ) {
+			jQuery.each( style, function( key, value ) {
+				style_str += key + ':' + value + ';';
+			} );
+
+			return style_str;
 		}
 
 		return style;

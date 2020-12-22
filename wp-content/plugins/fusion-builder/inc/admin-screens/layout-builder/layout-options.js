@@ -74,7 +74,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			event.preventDefault();
 
 			// Uncheck current condition box
-			this.getConditionCheckbox( id ).attr( 'checked', false );
+			this.getConditionCheckbox( id ).prop( 'checked', false );
 			// If it's a child condition remove it from preview
 			if ( condition.parent ) {
 				this.$el.find( 'li[data-condition-id="' + id + '"]' ).remove();
@@ -149,7 +149,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						'<li data-condition-id="' + id + '" class="preview-' + condition.mode + '">' + condition.label + '</li>'
 					);
 				}
-				self.getConditionCheckbox( id ).attr( 'checked', true );
+				self.getConditionCheckbox( id ).prop( 'checked', true );
 			} );
 
 			this.renderConditionsSection();
@@ -286,7 +286,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				$parent.find( '.load-more' ).addClass( 'disabled' );
 				$parent.find( '.load-more span' ).text( $parent.find( '.load-more' ).data( 'empty' ) );
 			} else {
-				$parent.find( '.load-more' ).show().attr( 'disabled', false ).removeClass( 'loading' );
+				$parent.find( '.load-more' ).show().prop( 'disabled', false ).removeClass( 'loading' );
 			}
 		},
 
@@ -299,7 +299,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 */
 		loadMore: function( event ) {
 			var $parent = jQuery( event.target ).closest( '.layout-option-parent' );
-			jQuery( event.currentTarget ).addClass( 'loading' ).attr( 'disabled', true );
+			jQuery( event.currentTarget ).addClass( 'loading' ).prop( 'disabled', true );
 			this.loadChildOptions( $parent );
 		},
 
@@ -340,14 +340,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			// Else if is selecting same condition but the mode is different perform a toggle
 			// Else were adding a new condition
 			if ( conditions[ conditionId ] && conditions[ conditionId ].mode === conditionMode ) {
-				input.checked = false;
+				jQuery( input ).prop( 'checked', false );
+				this.updateParent( input, conditionId );
 				this.model.unregisterCondition( conditionId, conditionMode );
 				delete conditions[ conditionId ];
 			} else if ( conditions[ conditionId ] ) {
 				this.model.unregisterCondition( conditionId, conditions[ conditionId ].mode );
-				jQuery( input ).siblings( 'input' ).attr( 'checked', false );
+				jQuery( input ).siblings( 'input' ).prop( 'checked', false );
 				conditions[ conditionId ].mode = conditionMode;
 				this.model.registerCondition( conditionId, conditionMode );
+				this.updateParent( input, conditionId );
 			} else {
 				conditions[ conditionId ] = {
 					label: input.dataset.label,
@@ -357,23 +359,34 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					parent: input.dataset.parent
 				};
 				this.model.registerCondition( conditionId, conditionMode );
+				this.updateParent( input, conditionId );
 			}
 
-			// If checkbox is from search results update child option if exist
-			if ( jQuery( input ).closest( '.layoutbox-search-results' ).length ) {
-				this.getConditionCheckbox( conditionId ).each( function() {
-					var checkbox = jQuery( this );
-					if ( ! checkbox.is( input ) ) {
-						checkbox.siblings( 'input' ).attr( 'checked', false );
-						checkbox.attr( 'checked', true );
-					}
-				} );
-			}
 			// Trigger autosave
 			this.saveLayout();
 
 			this.renderConditionsSection();
 			this.renderLayoutBoxConditionsSection( this.model );
+		},
+
+		/**
+		 * Updates parent options if options selected from search results
+		 * @since 3.1.1
+		 * @param input
+		 * @param conditionId
+		 */
+		updateParent: function( input, conditionId ) {
+			// If checkbox is from search results update child option if exist
+			if ( jQuery( input ).closest( '.layoutbox-search-results' ).length ) {
+				this.getConditionCheckbox( conditionId ).each( function() {
+					var checkbox = jQuery( this );
+					var status = jQuery( input ).prop( 'checked' );
+					if ( ! checkbox.is( input ) ) {
+						checkbox.siblings( 'input' ).prop( 'checked', false );
+						checkbox.prop( 'checked', status );
+					}
+				} );
+			}
 		},
 
 		/**
@@ -489,8 +502,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				// Update conditions in layout box.
 				this.renderLayoutBoxConditionsSection( layout );
 				// Assign checked state to the current condition
-				self.getConditionCheckbox( confirmation.id ).siblings( 'input' ).attr( 'checked', false );
-				self.getConditionCheckbox( confirmation.id ).attr( 'checked', true );
+				self.getConditionCheckbox( confirmation.id ).siblings( 'input' ).prop( 'checked', false );
+				self.getConditionCheckbox( confirmation.id ).prop( 'checked', true );
 				// Register to global conditions
 				this.model.registerCondition( confirmation.id, confirmation.condition.mode );
 				// Save both layouts

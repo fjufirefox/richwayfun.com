@@ -2442,6 +2442,15 @@ span.avada-loader {
 #wpwrap .avada-db-demos-themes .theme-browser .theme .demo-update-form-wrap .demo-import-form form input[type="radio"] {
   border: 1px solid #dfdfdf;
 }
+#wpwrap .avada-db-demos-themes .theme-browser .theme .demo-update-form-wrap .demo-import-form form p {
+  display: flex;
+  align-items: center;
+  margin: 0 -3px;
+}
+#wpwrap .avada-db-demos-themes .theme-browser .theme .demo-update-form-wrap .demo-import-form form input,
+#wpwrap .avada-db-demos-themes .theme-browser .theme .demo-update-form-wrap .demo-import-form form label {
+  margin: 0 3px;
+}
 #wpwrap .avada-db-demos-themes .theme-browser .theme .demo-update-form-wrap p {
   margin-top: 0;
   margin-bottom: 0;
@@ -2449,6 +2458,8 @@ span.avada-loader {
 }
 #wpwrap .avada-db-demos-themes .theme-browser .theme .demo-update-form-wrap label {
   display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #wpwrap .avada-db-demos-themes .theme-browser .theme .demo-update-form-wrap p:nth-child(odd) {
   clear: left;

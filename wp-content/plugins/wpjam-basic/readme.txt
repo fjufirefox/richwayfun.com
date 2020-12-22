@@ -4,7 +4,7 @@ Donate link: https://wpjam.com/
 Tags: WPJAM,性能优化
 Requires at least: 5.4
 Requires PHP: 7.2
-Tested up to: 5.5
+Tested up to: 5.6
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -49,6 +49,17 @@ WPJAM Basic 主要功能，就是去掉 WordPress 当中一些不常用的功能
 2. 激活插件，开始设置使用。
 
 == Changelog ==
+
+= 5.2 =
+* 类型转换函数全部切换成强制类型转换
+* 新增 wpjam_register_option_args filter
+* 新增 wpjam_register_post_option_args filter
+* 新增 wpjam_register_term_option_args filter
+* 新增 wpjam_register_api_args filter
+* 新增 wpjam_register_list_table_args filter
+* 新增 wpjam_register_page_action_args filter
+* 新增 wpjam_register_list_table_action_args filter
+* 新增 wpjam_register_list_table_column_args filter
 
 = 5.1 =
 * 支持腾讯云 COS 的 WebP 转换，节省流量

@@ -928,7 +928,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 								var family = option.getAttribute( 'data-value' );
 								if ( self.visibleY( option, rectTop, rectBottom ) ) {
 									option.classList.add( 'visible' );
-									self.getWebFont( family );
+									self.webFontLoad( family );
 								}
 							} );
 						} );
@@ -1124,7 +1124,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						if ( self.loadPreviews ) {
 							option.setAttribute( 'style', 'font-family:' + font.family );
 							if ( 5 > index ) {
-								self.getWebFont( font.family );
+								self.webFontLoad( font.family );
 								option.classList.add( 'visible' );
 							}
 						}

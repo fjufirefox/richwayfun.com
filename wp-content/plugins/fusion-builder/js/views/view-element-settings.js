@@ -510,7 +510,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 							$placeholderText = fusionBuilderText.select_categories_or_leave_blank_for_all;
 						} else if ( -1 !== jQuery( this ).attr( 'id' ).indexOf( 'exclude_cats' ) ) {
 							$placeholderText = fusionBuilderText.select_categories_or_leave_blank_for_none;
+						} else if ( -1 !== jQuery( this ).attr( 'id' ).indexOf( 'social_share_links' ) ) {
+							$placeholderText = fusionBuilderText.select_or_leave_blank_for_global;
 						}
+
 
 						jQuery( this ).select2( {
 							placeholder: $placeholderText

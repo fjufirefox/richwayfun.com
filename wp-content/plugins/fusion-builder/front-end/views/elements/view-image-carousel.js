@@ -71,6 +71,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				attributes.attr         = this.buildAttr( atts.values );
 				attributes.attrCarousel = this.buildCarouselAttr( atts.values );
 
+				// Whether it has a dynamic data stream.
+				attributes.usingDynamic = 'undefined' !== typeof atts.values.multiple_upload;
+
 				// Any extras that need passed on.
 				attributes.show_nav = atts.values.show_nav;
 

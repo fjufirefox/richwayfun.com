@@ -9,6 +9,14 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		FusionPageBuilder.fusion_section_separator = FusionPageBuilder.ElementView.extend( {
 
 			/**
+			 * BG Image Separator divider types.
+			 *
+			 * @since 3.2
+			 * @return {Object}
+			 */
+			bgImageSeparators: [ 'grunge', 'music', 'waves_brush', 'paper', 'squares', 'circles', 'paint', 'grass' ],
+
+			/**
 			 * Runs after view DOM is patched.
 			 *
 			 * @since 2.0
@@ -50,6 +58,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				attributes.attrCandyArrow   = this.buildCandyArrowAtts( atts.values );
 				attributes.attrCandy        = this.buildCandyAtts( atts.values );
 				attributes.attrSVG          = this.buildSVGAtts( atts.values );
+				attributes.attrSVGBGImage   = this.buildSVGBGImageAtts( atts.values );
 				attributes.attrButton       = this.buildButtonAtts( atts.values );
 				attributes.attrRoundedSplit = this.buildRoundedSplitAtts( atts.values );
 				attributes.values           = atts.values;
@@ -95,6 +104,22 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						style: ''
 					} );
 
+				if ( '' !== values.margin_top ) {
+					attr.style += 'margin-top:' + _.fusionGetValueWithUnit( values.margin_top ) + ';';
+				}
+
+				if ( '' !== values.margin_right ) {
+					attr.style += 'margin-right:' + _.fusionGetValueWithUnit( values.margin_right ) + ';';
+				}
+
+				if ( '' !== values.margin_bottom ) {
+					attr.style += 'margin-bottom:' + _.fusionGetValueWithUnit( values.margin_bottom ) + ';';
+				}
+
+				if ( '' !== values.margin_left ) {
+					attr.style += 'margin-left:' + _.fusionGetValueWithUnit( values.margin_left ) + ';';
+				}
+
 				if ( 'rounded-split' === values.divider_type ) {
 					attr[ 'class' ] += ' rounded-split-separator';
 				}
@@ -130,7 +155,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					paddingValueLeft      = '',
 					paddingValueRight     = '',
 					columnOuterWidth      = jQuery( parentColumnView.$el ).width(),
-					columnWidth           = jQuery( parentColumnView.$el ).children( '.fusion-column-wrapper' ).width();
+					columnWidth           = jQuery( parentColumnView.$el ).children( '.fusion-column-wrapper' ).width(),
+					dividerHeightArr      = [],
+					selectors;
 
 					if ( 'triangle' === values.divider_type ) {
 						if ( '' !== values.bordercolor ) {
@@ -239,6 +266,97 @@ var FusionPageBuilder = FusionPageBuilder || {};
 								} );
 							}
 						}
+
+						// Check for custom height.
+						this.baseSelector = '.fusion-section-separator.fusion-section-separator-' + this.model.get( 'cid' );
+						_.each( [ 'large', 'medium', 'small' ], function( responsiveSize ) {
+							var key = 'divider_height' + ( 'large' === responsiveSize ? '' : '_' + responsiveSize ),
+								media;
+
+							// Skip for specific type.
+							if ( 'triangle' === values.divider_type || 'rounded-split' === values.divider_type ) {
+								return;
+							}
+
+							// Check for flex.
+							if ( ! self.flexDisplay() && 'large' !== responsiveSize ) {
+								return;
+							}
+
+							// Check for empty value.
+							if ( '' === values[ key ] ) {
+								return;
+							}
+
+							dividerHeightArr[ key ] = values[ key ];
+							self.dynamic_css  = {};
+							media = 'large' === responsiveSize ? '' : '@media only screen and (max-width:' + extras[ 'visibility_' + responsiveSize ] + 'px)';
+
+							// Generate style rules.
+							selectors = [
+								self.baseSelector + ' .fusion-section-separator-svg svg',
+								self.baseSelector + ' .fusion-section-separator-svg-bg'
+							];
+							self.addCssProperty( selectors, 'height', values[ key ] );
+							selectors = [ self.baseSelector + ' .fusion-section-separator-spacer-height' ];
+							self.addCssProperty( selectors, 'height', values[ key ] + ' !important' );
+							self.addCssProperty( selectors, 'padding-top', 'inherit !important' );
+
+							if ( 'large' === responsiveSize ) {
+								values.additional_styles += self.parseCSS();
+							} else {
+								values.additional_styles += media + '{' + self.parseCSS() + '}';
+							}
+
+						} );
+
+						// Background Repeat.
+						_.each( [ 'large', 'medium', 'small' ], function( responsiveSize ) {
+							var key = 'divider_repeat' + ( 'large' === responsiveSize ? '' : '_' + responsiveSize ),
+								keyDividerH = 'divider_height' + ( 'large' === responsiveSize ? '' : '_' + responsiveSize ),
+								media,
+								height,
+								value;
+
+							// Only allow for SVG Background type.
+							if ( -1 === jQuery.inArray( values.divider_type, self.bgImageSeparators ) ) {
+								return;
+							}
+
+							// Check for flex.
+							if ( ! self.flexDisplay() && 'large' !== responsiveSize ) {
+								return;
+							}
+
+							// Check for empty value.
+							if ( '' === values[ key ] ) {
+								return;
+							}
+
+							self.dynamic_css  = {};
+							media = 'large' === responsiveSize ? '' : '@media only screen and (max-width:' + extras[ 'visibility_' + responsiveSize ] + 'px)';
+
+							height = '' !== values[ keyDividerH ] ? values[ keyDividerH ] : self.getDividerHeightResponsive( keyDividerH, dividerHeightArr );
+							height = '' === values[ keyDividerH ] && 1 < values[ key ] ? ( parseInt( height ) / values[ key ] ) + 'px' : height; // Aspect ratio height.
+
+							selectors = [ self.baseSelector + ' .fusion-section-separator-svg-bg' ];
+
+							if ( _.contains( height, '%' ) ) {
+								value = parseFloat( 100 / values[ key ] ) + '% 100%';
+							} else {
+								height = 0 < parseInt( height ) ? height : '100%';
+								value  = parseFloat( 100 / values[ key ] ) + '% ' + height;
+							}
+							self.addCssProperty( selectors, 'background-size', value );
+
+							if ( 'large' === responsiveSize ) {
+								values.additional_styles += self.parseCSS();
+							} else {
+								values.additional_styles += media + '{' + self.parseCSS() + '}';
+							}
+
+						} );
+
 					}
 
 				return attr;
@@ -283,7 +401,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				var attrSpacerHeight = {
 						class: 'fusion-section-separator-spacer-height'
 					},
-					hundredPxSeparators = [ 'slant', 'bigtriangle', 'curved', 'big-half-circle', 'clouds' ];
+					hundredPxSeparators = [ 'slant', 'bigtriangle', 'curved', 'big-half-circle', 'clouds' ],
+					height;
 
 				if ( -1 !== jQuery.inArray( values.divider_type, hundredPxSeparators ) ) {
 					attrSpacerHeight.style = 'height:99px;';
@@ -307,6 +426,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attrSpacerHeight.style = 'padding-top:' + ( 216 / 1024 * 100 ) + '%;';
 				} else if ( 'waves' === values.divider_type ) {
 					attrSpacerHeight.style = 'padding-top:' + ( 162 / 1024 * 100 ) + '%;';
+				} else if ( -1 !== jQuery.inArray( values.divider_type, this.bgImageSeparators ) ) {
+					height = '' === values.divider_height && 1 < values.divider_repeat ? ( parseInt( this._getDefaultSepHeight()[ values.divider_type ] ) / values.divider_repeat ) + 'px' : this._getDefaultSepHeight()[ values.divider_type ]; // Aspect ratio height.
+					attrSpacerHeight.style = 'height:' + height + ';';
 				}
 				return attrSpacerHeight;
 
@@ -316,8 +438,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * Builds attributes.
 			 *
 			 * @since 2.0
-			 * @param {Object} v//alues - The values.
-			 * @return {Object}//
+			 * @param {Object} values - The values.
+			 * @return {Object}
 			 */
 			buildCandyAtts: function( values ) {
 				var attrCandy = {
@@ -448,6 +570,76 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				return attrRoundedSplit;
+			},
+
+			/**
+			 * Builds SVG BG Image attributes.
+			 *
+			 * @since 3.2
+			 * @param {Object} values - The values.
+			 * @return {Object}
+			 */
+			buildSVGBGImageAtts: function( values ) {
+				var attrSVG = {
+					class: 'fusion-' + values.divider_type + '-candy-sep fusion-section-separator-svg-bg',
+					style: ''
+				},
+				height = this._getDefaultSepHeight()[ values.divider_type ] ? this._getDefaultSepHeight()[ values.divider_type ] : '100px',
+				transform = [];
+
+				if ( '' === values.divider_height ) {
+					if ( 1 < values.divider_repeat ) {
+						height = ( parseInt( height ) / values.divider_repeat ) + 'px';
+					}
+					attrSVG.style += 'height:' + height + ';';
+				}
+
+				if ( 'right' === values.divider_position ) {
+					transform.push( 'rotateY(180deg)' );
+				} else {
+					transform.push( 'rotateY(0)' );
+				}
+
+				if ( 'bottom' === values.divider_candy ) {
+					transform.push( 'rotateX(180deg)' );
+				} else {
+					transform.push( 'rotateX(0)' );
+				}
+
+				if ( transform.length ) {
+					attrSVG.style += 'transform: ' + transform.join( ' ' ) + ' ;';
+				}
+
+
+				return attrSVG;
+			},
+
+			/**
+			 * Get default height of separators.
+			 *
+			 * @since 3.2
+			 * @return {Object}
+			 */
+			_getDefaultSepHeight: function() {
+				return {
+					grunge: '43px',
+					music: '297px',
+					waves_brush: '124px',
+					paper: '102px',
+					circles: '164px',
+					squares: '140px',
+					paint: '80px',
+					grass: '195px'
+				};
+			},
+
+			getDividerHeightResponsive: function( key, hash ) {
+				var keys = hash.keys();
+				var found_index = _.contains( keys, key );
+				if ( false === found_index || 0 === found_index ) {
+					return '';
+				}
+				return keys[ found_index - 1 ];
 			}
 
 		} );

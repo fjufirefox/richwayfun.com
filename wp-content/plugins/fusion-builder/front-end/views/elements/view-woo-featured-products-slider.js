@@ -141,7 +141,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						inCart    = jQuery.inArray( product.id, queryData.items_in_cart ),
 						image     = '';
 
-					imageData.image_size = featuredImageSize;
+					imageData.image_size       = featuredImageSize;
+					imageData.display_woo_sale = 'yes' === values.show_sale;
 
 					// Title on rollover layout.
 					if ( 'title_on_rollover' === values.carousel_layout ) {

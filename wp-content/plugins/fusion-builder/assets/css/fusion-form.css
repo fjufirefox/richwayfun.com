@@ -16,14 +16,17 @@
 .fusion-form-form-wrapper .fusion-form-field .fusion-form-input:hover:not(:focus) {
   border-color: var(--form_focus_border_color-5a);
 }
-.fusion-form-form-wrapper .fusion-form-field label {
+.fusion-form-form-wrapper .fusion-form-field label,
+.fusion-form-form-wrapper .fusion-form-field .label {
   display: inline-block;
   line-height: normal;
 }
-.fusion-form-form-wrapper .fusion-form-field.fusion-form-label-above label {
+.fusion-form-form-wrapper .fusion-form-field.fusion-form-label-above label,
+.fusion-form-form-wrapper .fusion-form-field.fusion-form-label-above .label {
   margin-bottom: 0.65em;
 }
-.fusion-form-form-wrapper .fusion-form-field.fusion-form-label-below label {
+.fusion-form-form-wrapper .fusion-form-field.fusion-form-label-below label,
+.fusion-form-form-wrapper .fusion-form-field.fusion-form-label-below .label {
   margin-top: 0.65em;
 }
 .fusion-form-form-wrapper .fusion-form-field.fusion-form-label-below .select-arrow {
@@ -169,6 +172,9 @@
 }
 .fusion-form .form-submission-notices .fusion-form-response {
   display: none;
+}
+.fusion-body .flatpickr-calendar.open {
+  z-index: 100000;
 }
 .fusion-form-widget .fusion-form-form-wrapper .fusion-layout-column {
   width: 100%;

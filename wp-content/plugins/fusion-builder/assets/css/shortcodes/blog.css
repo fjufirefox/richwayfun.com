@@ -518,7 +518,7 @@ Table of Contents
 }
 .fusion-blog-layout-grid .fusion-post-grid .flexslider,
 .fusion-blog-layout-grid .fusion-post-grid .fusion-post-wrapper,
-.products li,
+.products li .fusion-product-wrapper,
 .product-buttons,
 .product-buttons-container,
 .fusion-blog-layout-timeline .fusion-timeline-line,
@@ -535,7 +535,7 @@ Table of Contents
 }
 .avada-has-transparent-timeline_color .fusion-blog-layout-grid .fusion-post-grid .flexslider,
 .avada-has-transparent-timeline_color .fusion-blog-layout-grid .fusion-post-grid .fusion-post-wrapper,
-.avada-has-transparent-timeline_color .products li,
+.avada-has-transparent-timeline_color .products li .fusion-product-wrapper,
 .avada-has-transparent-timeline_color .product-buttons,
 .avada-has-transparent-timeline_color .product-buttons-container,
 .avada-has-transparent-timeline_color .fusion-blog-layout-timeline .fusion-timeline-line,

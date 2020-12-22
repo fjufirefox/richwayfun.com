@@ -135,6 +135,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				tabsShortcode[ 'class' ] += ( 'vertical' === values.layout ) ? ' vertical-tabs' : ' horizontal-tabs';
 
+				if ( 'no' == values.show_tab_titles ) {
+					tabsShortcode[ 'class' ] += ' woo-tabs-hide-headings';
+				}
+
 				if ( '' !== values.id ) {
 					tabsShortcode.id = values.id;
 				}

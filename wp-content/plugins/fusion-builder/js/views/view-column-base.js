@@ -277,10 +277,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				// Build column shortcode
 				shortcode += '[' + colType + ' type="' + module.get( 'layout' ) + '"';
 
+				// We use layout instead.
+				delete columnParams.type;
+
+				// Loops params and add.
 				_.each( columnParams, function( value, name ) {
-
 					shortcode += ' ' + name + '="' + value + '"';
-
 				} );
 
 				shortcode += ']';
@@ -343,6 +345,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 							// Build nested column shortcode
 							shortcode += '[fusion_builder_column_inner type="' + module.get( 'layout' ) + '"';
+
+							// We use layout instead.
+							delete innerColumnParams.type;
 
 							_.each( innerColumnParams, function( value, name ) {
 
@@ -442,7 +447,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				FusionPageBuilderApp.removeContextMenu();
 
-				FusionPageBuilderApp.innerColumn = 'false';
+				FusionPageBuilderApp.innerColumn = this.isNested ? 'true' : 'false';
 				FusionPageBuilderApp.parentColumnId = this.model.get( 'cid' );
 
 				$eventTarget     = $( event.target );

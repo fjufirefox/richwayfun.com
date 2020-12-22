@@ -353,7 +353,7 @@
   padding-left: var(--timeline_bg_color-20px-transparent);
   padding-right: var(--timeline_bg_color-20px-transparent);
 }
-.products li.product {
+.products li.product .fusion-product-wrapper {
   background-color: var(--timeline_bg_color);
 }
 .container {

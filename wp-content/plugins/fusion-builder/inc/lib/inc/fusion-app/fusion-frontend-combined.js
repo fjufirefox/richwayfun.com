@@ -2845,7 +2845,7 @@ var FusionEvents = _.extend( {}, Backbone.Events );
 				// If page switch has been triggered manually.
 				this.manualSwitch = false;
 
-				this.linkSelectors = 'td.tribe-events-thismonth a, .tribe-events-month-event-title a,.fusion-menu a, .fusion-secondary-menu a, .fusion-logo-link, .widget a, .woocommerce-tabs a, .fusion-posts-container a:not(.fusion-rollover-gallery), .fusion-rollover .fusion-rollover-link, .project-info-box a, .fusion-meta-info-wrapper a, .related-posts a, .related.products a, .woocommerce-page .products .product a, #tribe-events-content a, .fusion-breadcrumbs a, .single-navigation a, .fusion-column-inner-bg a';
+				this.linkSelectors = 'td.tribe-events-thismonth a, .tribe-events-month-event-title a,.fusion-menu a, .fusion-secondary-menu a, .fusion-logo-link, .fusion-imageframe > a, .widget a, .woocommerce-tabs a, .fusion-posts-container a:not(.fusion-rollover-gallery), .fusion-rollover .fusion-rollover-link, .project-info-box a, .fusion-meta-info-wrapper a, .related-posts a, .related.products a, .woocommerce-page .products .product a, #tribe-events-content a, .fusion-breadcrumbs a, .single-navigation a, .fusion-column-inner-bg a';
 			},
 
 			/**
@@ -3645,7 +3645,7 @@ var FusionEvents = _.extend( {}, Backbone.Events );
 					this.reInitIconPicker();
 
 					if ( this.hasContentChanged( 'global', 'theme-option' ) ) {
-						postData.fusion_options = jQuery.param( FusionApp.settings ); // eslint-disable-line camelcase
+						postData.fusion_options = jQuery.param( this.maybeEmptyArray( FusionApp.settings ) ); // eslint-disable-line camelcase
 					}
 
 					if ( this.hasContentChanged( 'page', 'page-option' ) ) {
@@ -3794,7 +3794,7 @@ var FusionEvents = _.extend( {}, Backbone.Events );
 
 				// Check for scroll links on same page and return.
 				if ( '#' === linkHref.charAt( 0 ) || ( '' !== linkHash && targetPathname === location.pathname ) ) {
-					if ( 'function' === typeof $targetEl.fusion_scroll_to_anchor_target ) {
+					if ( 'function' === typeof $targetEl.fusion_scroll_to_anchor_target && ! $targetEl.parent().parent().hasClass( 'wc-tabs' ) ) {
 						$targetEl.fusion_scroll_to_anchor_target();
 					}
 					return;
@@ -4702,6 +4702,24 @@ var FusionEvents = _.extend( {}, Backbone.Events );
 				} else {
 					this.previewWindowSize = 'large';
 				}
+			},
+
+			/**
+			 * Check for empty array values.
+			 * Used to fix issue with jQuery.param omit empty array.
+			 *
+			 * @since 7.2
+			 * @param {object} obj - Object Arrays.
+			 * @return {void}
+			 */
+			maybeEmptyArray: function( obj ) {
+				var key;
+				for ( key in obj ) {
+					if ( 'object' === typeof obj[ key ] && 0 == obj[ key ].length ) {
+						obj[ key ] = [ '' ];
+					}
+				}
+				return obj;
 			}
 
 		} );
@@ -5641,7 +5659,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 								var family = option.getAttribute( 'data-value' );
 								if ( self.visibleY( option, rectTop, rectBottom ) ) {
 									option.classList.add( 'visible' );
-									self.getWebFont( family );
+									self.webFontLoad( family );
 								}
 							} );
 						} );
@@ -5837,7 +5855,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						if ( self.loadPreviews ) {
 							option.setAttribute( 'style', 'font-family:' + font.family );
 							if ( 5 > index ) {
-								self.getWebFont( font.family );
+								self.webFontLoad( font.family );
 								option.classList.add( 'visible' );
 							}
 						}
@@ -12017,8 +12035,8 @@ FusionPageBuilder.options.fusionTypographyField = {
 
 		scriptID = script.replace( /:/g, '' ).replace( /"/g, '' ).replace( /'/g, '' ).replace( / /g, '' ).replace( /,/, '' );
 
-		if ( ! jQuery( '#fb-preview' ).contents().find( '#' + scriptID ).length ) {
-			jQuery( '#fb-preview' ).contents().find( 'head' ).append( '<script id="' + scriptID + '">WebFont.load({google:{families:["' + script + '"]},context:FusionApp.previewWindow,active: function(){ jQuery( window ).trigger( "fusion-font-loaded"); },});</script>' );
+		if ( ! jQuery( 'head' ).find( '#' + scriptID ).length ) {
+			jQuery( 'head' ).first().append( '<script id="' + scriptID + '">WebFont.load({google:{families:["' + script + '"]},context:FusionApp.previewWindow,active: function(){ jQuery( window ).trigger( "fusion-font-loaded"); },});</script>' );
 			return false;
 		}
 		return true;

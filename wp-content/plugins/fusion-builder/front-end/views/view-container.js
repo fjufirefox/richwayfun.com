@@ -580,7 +580,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			attr: function() {
 				var attr = {
 					'class': 'fusion-fullwidth fullwidth-box fusion-builder-row-live-' + this.model.get( 'cid' ),
-					'style': ''
+					'style': '',
+					'id': ''
 				},
 					self = this;
 
@@ -731,6 +732,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				// Custom CSS ID.
 				if ( '' !== this.values.id ) {
 					attr.id = this.values.id;
+				}
+
+				if ( '' !== this.values.menu_anchor ) {
+					attr.id += ' ' + this.values.menu_anchor;
 				}
 
 				// Sticky container.
