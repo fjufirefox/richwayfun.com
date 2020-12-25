@@ -40,11 +40,19 @@ class LocalMap {
 	initializeMap( id, mapOptions ) {
 		const bounds = new google.maps.LatLngBounds()
 		const locations = mapOptions.locations
+		const setBound = Object.keys( locations ).length > 1
 		const mapOptionsData = {
 			zoom: parseInt( mapOptions.zoom_level ),
 			zoomControl: mapOptions.allow_zoom,
 			draggable: mapOptions.allow_dragging,
 			mapTypeId: mapOptions.map_style,
+		}
+
+		if ( ! setBound ) {
+			mapOptionsData.center = {
+				lat: Number( locations[ Object.keys( locations )[ 0 ] ].lat ),
+				lng: Number( locations[ Object.keys( locations )[ 0 ] ].lng ),
+			}
 		}
 
 		const map = new google.maps.Map( document.getElementById( id ), mapOptionsData )
@@ -73,7 +81,9 @@ class LocalMap {
 			this.markers[ key ] = marker
 		} )
 
-		map.fitBounds( bounds )
+		if ( setBound ) {
+			map.fitBounds( bounds )
+		}
 
 		if ( mapOptions.show_clustering ) {
 			this.markerClusterer( map )

@@ -226,6 +226,9 @@ msgstr ""
 msgid "Music"
 msgstr ""
 
+msgid "Movie"
+msgstr ""
+
 msgid "Person"
 msgstr ""
 
@@ -245,6 +248,15 @@ msgid "Software"
 msgstr ""
 
 msgid "Video"
+msgstr ""
+
+msgid "Dataset"
+msgstr ""
+
+msgid "FAQ"
+msgstr ""
+
+msgid "FactCheck"
 msgstr ""
 
 msgid "Clear Filter"
@@ -457,6 +469,9 @@ msgstr ""
 msgid "Enable updates"
 msgstr ""
 
+msgid "Automatic updates are not available."
+msgstr ""
+
 msgid "Rank Math SEO PRO For WordPress"
 msgstr ""
 
@@ -474,8 +489,8 @@ msgstr ""
 msgid "It seems that you don't have an active subscription for %1$s. Please see %2$sdetails and pricing%3$s."
 msgstr ""
 
-#. translators: 1: Pricing Link's opening HTML anchor tag, 2: Plugin name, 3: Pricing Link's closing HTML anchor tag.
-msgid "Please %1$sconnect %2$s%3$s for automatic updates."
+#. translators: 1: Link's opening HTML anchor tag, 2: Link's closing HTML anchor tag.
+msgid "Please %1$s connect Rank Math SEO PRO %2$s for automatic updates."
 msgstr ""
 
 msgid "Close panel"
@@ -582,6 +597,57 @@ msgid "Export current redirections as a CSV file."
 msgstr ""
 
 msgid "Include deactivated redirections"
+msgstr ""
+
+msgid "Add FAQ Schema Markup"
+msgstr ""
+
+msgid "Added by the Rank Math SEO Plugin."
+msgstr ""
+
+msgid "Breadcrumbs"
+msgstr ""
+
+msgid "Breadcrumbs are disabled in the Rank Math SEO"
+msgstr ""
+
+msgid "Breadcrumbs Panel"
+msgstr ""
+
+msgid "Alignment"
+msgstr ""
+
+msgid "Left"
+msgstr ""
+
+msgid "Center"
+msgstr ""
+
+msgid "Right"
+msgstr ""
+
+msgid "HTML Tag"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Additional settings are available in the Rank Math SEO"
+msgstr ""
+
+msgid "Text Color"
+msgstr ""
+
+msgid "Normal"
+msgstr ""
+
+msgid "Link Color"
+msgstr ""
+
+msgid "Hover"
+msgstr ""
+
+msgid "Color"
 msgstr ""
 
 msgid "Are you sure you want to import meta data from this CSV file?"
@@ -1009,7 +1075,7 @@ msgstr ""
 msgid "Search categories"
 msgstr ""
 
-#. translators: Local SEO Settings Link
+#. translators: %s expands to General Settings Link.
 msgid "This page can't load Google Maps correctly. Please add %s."
 msgstr ""
 
@@ -1107,9 +1173,6 @@ msgid "DataSet"
 msgstr ""
 
 msgid "Fact Check"
-msgstr ""
-
-msgid "Movie"
 msgstr ""
 
 msgid "None (Click here to set one)"
@@ -1210,17 +1273,22 @@ msgstr ""
 msgid "Materials:"
 msgstr ""
 
-msgid "Learn more"
+msgid "Autodetect Video"
 msgstr ""
 
-msgid "Post Types:"
+msgid "Populate automatic Video Schema by auto-detecting any video in the content."
 msgstr ""
 
-msgid "Attachments"
+msgid "Custom"
 msgstr ""
 
-#. translators: 1. post type name 2. link
-msgid "Change Global SEO, Schema, and other settings for %1$s. %2$s"
+msgid "Autogenerate Image"
+msgstr ""
+
+msgid "Auto-generate image for the auto detected video."
+msgstr ""
+
+msgid "Remove Media Data from RSS feed"
 msgstr ""
 
 msgid "Video Sitemaps give search engines information about video content on your site. More information: <a href=\"https://rankmath.com/kb/video-sitemap/?utm_source=Plugin&utm_campaign=WP\" target=\"_blank\">Video Sitemaps</a>"
@@ -1242,10 +1310,69 @@ msgstr ""
 msgid "List of custom fields name to check for video content. Add one per line."
 msgstr ""
 
+msgid "Select Brand"
+msgstr ""
+
+msgid "Select Product Brand Taxonomy to use in Schema.org & OpenGraph markup."
+msgstr ""
+
+msgid "Brand"
+msgstr ""
+
+msgid "Brand value to use in Schema.org & OpenGraph markup."
+msgstr ""
+
+msgid "Global Identifier"
+msgstr ""
+
+msgid "Global Identifier key to use in the Product Schema."
+msgstr ""
+
+msgid "GTIN-8"
+msgstr ""
+
+msgid "GTIN-12"
+msgstr ""
+
+msgid "GTIN-13"
+msgstr ""
+
+msgid "GTIN-14"
+msgstr ""
+
+msgid "ISBN"
+msgstr ""
+
+msgid "MPN"
+msgstr ""
+
+msgid "Show Global Identifier"
+msgstr ""
+
+msgid "Show Global Identifier on the Product page."
+msgstr ""
+
+msgid "Global Identifier label"
+msgstr ""
+
+msgid "Global Identifier label to show on Single product page."
+msgstr ""
+
 msgid "Noindex Hidden Products"
 msgstr ""
 
 msgid "Set Product Pages to noindex when WooCommerce Catalog visibility is set to hidden."
+msgstr ""
+
+msgid "GTIN"
+msgstr ""
+
+#. translators: Global Identifier name.
+msgid "%s value to use in the Product schema."
+msgstr ""
+
+#. translators: Global Identifier name.
+msgid "%s value to use in Product schema."
 msgstr ""
 
 msgid "Phone"
@@ -2076,12 +2203,6 @@ msgstr ""
 msgid "Once you save the changes, we will create a new custom post type called \"Locations\" where you can add multiple locations of your business/organization."
 msgstr ""
 
-msgid "Default"
-msgstr ""
-
-msgid "Custom"
-msgstr ""
-
 msgid "Search engines display your email address."
 msgstr ""
 
@@ -2232,11 +2353,11 @@ msgstr ""
 msgid "Google Maps API Key"
 msgstr ""
 
-#. translators: %s expands to "Google Maps Javascript API" https://developers.google.com/maps/documentation/embed/
+#. translators: %s expands to "Google Maps Embed API" https://developers.google.com/maps/documentation/embed/
 msgid "An API Key is required to display embedded Google Maps on your site. Get it here: %s"
 msgstr ""
 
-msgid "Google Maps Javascript API"
+msgid "Google Maps Embed API"
 msgstr ""
 
 msgid "Geo Coordinates"
@@ -2330,211 +2451,4 @@ msgid "Director"
 msgstr ""
 
 msgid "Date Created"
-msgstr ""
-
-msgid "Show SEO Score"
-msgstr ""
-
-#. translators: %s is the shortcode
-msgid "Show the calculated SEO Score as a badge on the front end for selected post types. It can be disabled for specific posts."
-msgstr ""
-
-msgid "SEO Score Post Types"
-msgstr ""
-
-msgid "SEO Score Template"
-msgstr ""
-
-msgid "Change the styling for the front end SEO score badge."
-msgstr ""
-
-msgid "Circle"
-msgstr ""
-
-msgid "Square"
-msgstr ""
-
-msgid "SEO Score Position"
-msgstr ""
-
-#. translators: 1.SEO Score Shortcode 2. SEO Score function
-msgid "Display the badges automatically, or insert the %1$s shortcode in your posts and the %2$s template tag in your theme template files."
-msgstr ""
-
-msgid "Below Content"
-msgstr ""
-
-msgid "Above Content"
-msgstr ""
-
-msgid "Above & Below Content"
-msgstr ""
-
-msgid "Custom (use shortcode)"
-msgstr ""
-
-msgid "Support Us with a Link"
-msgstr ""
-
-#. translators: %s is the word "nofollow" code tag and second one for the filter link
-msgid "If you are showing the SEO scores on the front end, this option will insert a %1$s backlink to RankMath.com to show your support. You can change the link & the text by using this %2$s."
-msgstr ""
-
-msgid "filter"
-msgstr ""
-
-msgid "Remove Media Data from RSS feed"
-msgstr ""
-
-msgid "RSS Before Content"
-msgstr ""
-
-msgid "Add content before each post in your site feeds."
-msgstr ""
-
-msgid "RSS After Content"
-msgstr ""
-
-msgid "Add content after each post in your site feeds."
-msgstr ""
-
-msgid "To configure attachment-related meta tags disable attachment redirection to parent."
-msgstr ""
-
-#. translators: post type name
-msgid "Single %s Title"
-msgstr ""
-
-#. translators: post type name
-msgid "Default title tag for single %s pages. This can be changed on a per-post basis on the post editor screen."
-msgstr ""
-
-#. translators: post type name
-msgid "Single %s Description"
-msgstr ""
-
-#. translators: post type name
-msgid "Default description for single %s pages. This can be changed on a per-post basis on the post editor screen."
-msgstr ""
-
-#. translators: post type name
-msgid "%s Archive Title"
-msgstr ""
-
-#. translators: post type name
-msgid "Title for %s archive pages."
-msgstr ""
-
-#. translators: post type name
-msgid "%s Archive Description"
-msgstr ""
-
-#. translators: post type name
-msgid "Description for %s archive pages."
-msgstr ""
-
-msgid "Schema Type"
-msgstr ""
-
-msgid "Default rich snippet selected when creating a new post of this type. "
-msgstr ""
-
-msgid "None"
-msgstr ""
-
-msgid "Headline"
-msgstr ""
-
-msgid "Default rich snippet selected when creating a new product."
-msgstr ""
-
-#. translators: Google article snippet doc link
-msgid "Google does not allow Person as the Publisher for articles. Organization will be used instead. You can read more about this <a href=\"%s\" target=\"_blank\">here</a>."
-msgstr ""
-
-msgid "Article Type"
-msgstr ""
-
-msgid "Autodetect Video"
-msgstr ""
-
-msgid "Populate automatic Video Schema by auto-detecting any video in the content."
-msgstr ""
-
-msgid "Autogenerate Image"
-msgstr ""
-
-msgid "Auto-generate Image from the Embed link."
-msgstr ""
-
-#. translators: post type name
-#. translators: post type name
-msgid "%s Robots Meta"
-msgstr ""
-
-#. translators: post type name
-msgid "Select custom robots meta, such as <code>nofollow</code>, <code>noarchive</code>, etc. for single %s pages. Otherwise the default meta will be used, as set in the Global Meta tab."
-msgstr ""
-
-#. translators: post type name
-msgid "Custom values for robots meta tag on %s."
-msgstr ""
-
-#. translators: post type name
-msgid "%s Advanced Robots Meta"
-msgstr ""
-
-msgid "Link Suggestions"
-msgstr ""
-
-msgid "Enable Link Suggestions meta box for this post type, along with the Pillar Content feature."
-msgstr ""
-
-msgid "Link Suggestion Titles"
-msgstr ""
-
-msgid "Use the Focus Keyword as the default text for the links instead of the post titles."
-msgstr ""
-
-msgid "Titles"
-msgstr ""
-
-msgid "Focus Keywords"
-msgstr ""
-
-msgid "Primary Taxonomy"
-msgstr ""
-
-#. translators: post type name
-msgid "Select taxonomy to show in the Breadcrumbs when a single %1$s is being viewed."
-msgstr ""
-
-msgid "Thumbnail for Facebook"
-msgstr ""
-
-msgid "Image displayed when your page is shared on Facebook and other social networks. Use images that are at least 1200 x 630 pixels for the best display on high resolution devices."
-msgstr ""
-
-msgid "Add SEO Meta Box"
-msgstr ""
-
-msgid "Add the SEO Meta Box for the editor screen to customize SEO options for posts in this post type."
-msgstr ""
-
-msgid "Bulk Editing"
-msgstr ""
-
-msgid "Add bulk editing columns to the post listing screen."
-msgstr ""
-
-msgid "Disabled"
-msgstr ""
-
-msgid "Enabled"
-msgstr ""
-
-msgid "Read Only"
-msgstr ""
-
-msgid "List of custom fields name to include in the Page analysis. Add one per line."
 msgstr ""
