@@ -50,6 +50,19 @@ WPJAM Basic 主要功能，就是去掉 WordPress 当中一些不常用的功能
 
 == Changelog ==
 
+= 5.3 =
+* 新增 Trait WPJAM_Meta_Trait
+* 新增 class WPJAM_Lazyloader
+* CDN 后台媒体库只镜像图片
+* CDN 远程图片功能上传到媒体库
+* 支持停用 CDN，切换回使用本站图片
+* 优化分类缓存处理
+* 优化后台的类库加载，防止重复加载
+* 修复媒体库列表页报错
+* 修复文章数量扩展的一个bug
+* 修复相关文章扩展图片尺寸问题
+* 其他优化和bug修复
+
 = 5.2 =
 * 类型转换函数全部切换成强制类型转换
 * 新增 wpjam_register_option_args filter
